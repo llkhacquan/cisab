@@ -1,9 +1,9 @@
 package models
 
+type UserID int
+
 // User represents a user model
 type User struct {
-	ID       int    `json:"id"`
+	ID       UserID `json:"id"`
 	Username string `json:"username"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
 }
