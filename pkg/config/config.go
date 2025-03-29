@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
 
@@ -41,12 +42,12 @@ func LoadConfig(path string) (*Config, error) {
 	// Read the config file
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("error reading config file: %w", err)
+		return nil, errors.Wrap(err, "error reading config file")
 	}
 
 	// Unmarshal the config file
 	if err := yaml.Unmarshal(data, config); err != nil {
-		return nil, fmt.Errorf("error unmarshaling config: %w", err)
+		return nil, errors.Wrap(err, "error unmarshaling config")
 	}
 
 	// Override with environment variables if they exist
