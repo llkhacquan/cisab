@@ -26,6 +26,9 @@ func NewTaskService(taskRepo repo.TaskRepo, userRepo repo.UserRepo) TaskService 
 // CreateTask creates a new task
 func (s *taskService) CreateTask(ctx context.Context, request CreateTaskRequest) (*CreateTaskResponse, error) {
 	authMD := authctx.Get(ctx)
+	if authMD.User.ID == 0 {
+		return nil, ErrUnauthorized
+	}
 	if authMD.User.Role != models.UserRoleEmployer {
 		return nil, NewInvalidInputError("only employers can create tasks")
 	}
@@ -75,5 +78,66 @@ func (s *taskService) CreateTask(ctx context.Context, request CreateTaskRequest)
 
 	return &CreateTaskResponse{
 		Task: createdTask,
+	}, nil
+}
+
+// UpdateTaskStatus updates the status of a task
+func (s *taskService) UpdateTaskStatus(ctx context.Context, request UpdateTaskStatusRequest) (*UpdateTaskStatusResponse, error) {
+	// Check authentication
+	authMD := authctx.Get(ctx)
+	if authMD.User.ID == 0 {
+		return nil, ErrUnauthorized
+	}
+
+	// Get the task
+	task, err := s.taskRepo.GetTaskByID(ctx, request.TaskID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get task")
+	}
+
+	if task == nil {
+		return nil, ErrNotFound
+	}
+
+	// Verify the user is allowed to update the task status
+	// Only employees assigned to the task can update its status
+	if authMD.User.Role == models.UserRoleEmployee {
+		// Make sure task has assignee and it's the current user
+		if task.AssigneeID == nil || *task.AssigneeID != authMD.User.ID {
+			return nil, NewInvalidInputError("you can only update tasks assigned to you")
+		}
+	} else if authMD.User.Role == models.UserRoleEmployer {
+		// Employers can only update tasks they created
+		if task.EmployerID != authMD.User.ID {
+			return nil, NewInvalidInputError("you can only update tasks you created")
+		}
+	}
+
+	// Validate the new status
+	switch request.Status {
+	case models.TaskStatusPending, models.TaskStatusInProgress, models.TaskStatusCompleted:
+		// Valid status
+	default:
+		return nil, NewInvalidInputError("invalid task status")
+	}
+
+	// Update the task status
+	updated, err := s.taskRepo.UpdateTaskStatus(ctx, task.ID, request.Status)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update task status")
+	}
+
+	_ = updated
+	// okay, we can return error here, or we can just return the task, nothing changed
+	// let's return the task here
+
+	// Retrieve the updated task
+	updatedTask, err := s.taskRepo.GetTaskByID(ctx, task.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get updated task")
+	}
+
+	return &UpdateTaskStatusResponse{
+		Task: *updatedTask,
 	}, nil
 }

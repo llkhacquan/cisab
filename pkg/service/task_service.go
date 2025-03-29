@@ -11,6 +11,9 @@ import (
 type TaskService interface {
 	// CreateTask creates a new task
 	CreateTask(ctx context.Context, request CreateTaskRequest) (*CreateTaskResponse, error)
+
+	// UpdateTaskStatus updates the status of a task
+	UpdateTaskStatus(ctx context.Context, request UpdateTaskStatusRequest) (*UpdateTaskStatusResponse, error)
 }
 
 // CreateTaskRequest represents the request to create a new task
@@ -24,5 +27,16 @@ type CreateTaskRequest struct {
 
 // CreateTaskResponse represents the response after creating a task
 type CreateTaskResponse struct {
+	Task models.Task `json:"task"`
+}
+
+// UpdateTaskStatusRequest represents the request to update a task's status
+type UpdateTaskStatusRequest struct {
+	TaskID models.TaskID     `json:"task_id"`
+	Status models.TaskStatus `json:"status" binding:"required"`
+}
+
+// UpdateTaskStatusResponse represents the response after updating a task's status
+type UpdateTaskStatusResponse struct {
 	Task models.Task `json:"task"`
 }

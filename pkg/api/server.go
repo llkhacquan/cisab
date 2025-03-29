@@ -87,6 +87,11 @@ func (s *Server) setupRoutes() {
 			Path:    "/tasks",
 			Handler: s.CreateTaskHandler,
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/tasks/{id}/status",
+			Handler: s.UpdateTaskStatusHandler,
+		},
 	}
 
 	// Register all API endpoints

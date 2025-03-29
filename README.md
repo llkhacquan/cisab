@@ -131,6 +131,17 @@ curl -X POST http://localhost:8080/api/v1/tasks \
   }'
 ```
 
+### Update task status (protected endpoint)
+
+```bash
+curl -X PATCH http://localhost:8080/api/v1/tasks/1/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
+  -d '{
+    "status": "completed"
+  }'
+```
+
 For more examples and detailed API documentation, see [API Documentation](docs/user_service.md).
 
 ## Configuration
