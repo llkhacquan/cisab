@@ -9,43 +9,23 @@ import (
 // UserService defines the interface for user operations
 type UserService interface {
 	// GetUsers returns all users
-	GetUsers(ctx context.Context) ([]models.User, error)
+	GetUsers(ctx context.Context, request GetUsersRequest) (GetUsersResponse, error)
 
 	// GetUserByID returns a user by ID
-	GetUserByID(ctx context.Context, id models.UserID) (*models.User, error)
+	GetUserByID(ctx context.Context, request GetUserByIDRequest) (*GetUserByIDResponse, error)
 }
 
-// userService implements the UserService interface
-type userService struct {
-	// In a real application, this would have dependencies like a database repository
+type GetUsersRequest struct {
+	// no fields needed for this request
+}
+type GetUsersResponse struct {
+	Users []models.User `json:"users"`
 }
 
-// NewUserService creates a new UserService
-func NewUserService() UserService {
-	return &userService{}
+type GetUserByIDRequest struct {
+	ID models.UserID
 }
 
-// GetUsers returns all users
-func (s *userService) GetUsers(ctx context.Context) ([]models.User, error) {
-	// In a real application, this would fetch users from a database
-	// For now, we'll return mock data
-	return []models.User{
-		{ID: 1, Name: "johndoe"},
-		{ID: 2, Name: "janedoe"},
-		{ID: 3, Name: "bobsmith"},
-	}, nil
-}
-
-// GetUserByID returns a user by ID
-func (s *userService) GetUserByID(ctx context.Context, id models.UserID) (*models.User, error) {
-	users, err := s.GetUsers(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for _, user := range users {
-		if user.ID == id {
-			return &user, nil
-		}
-	}
-	return nil, nil // User not found
+type GetUserByIDResponse struct {
+	User *models.User `json:"user"`
 }

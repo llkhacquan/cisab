@@ -28,6 +28,12 @@ A simple HTTP REST API with middleware demonstration.
 
 - Go 1.24 or later
 
+### Running the test
+
+```bash
+make check
+```
+
 ### Running the API
 
 1. Clone the repository

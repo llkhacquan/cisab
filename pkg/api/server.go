@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/llkhacquan/knovel-assignment/pkg/service"
 	"github.com/llkhacquan/knovel-assignment/pkg/utils/logger"
@@ -33,15 +35,33 @@ func (s *Server) setupRoutes() {
 	s.router.Use(LoggingMiddleware(s.logger))
 	s.router.Use(CorsMiddleware)
 
-	// Public routes
-	s.router.HandleFunc("/health", s.HealthCheckHandler).Methods("GET")
+	// Public endpoints
+	publicEndpoints := []Endpoint{
+		{
+			Method:  http.MethodGet,
+			Path:    "/health",
+			Handler: s.HealthCheckHandler,
+		},
+	}
 
-	// API routes with auth middleware
+	// Register public endpoints
+	RegisterEndpoints(s.router, publicEndpoints, s.logger)
+
+	// API router with auth middleware
 	apiRouter := s.router.PathPrefix("/api/v1").Subrouter()
 	apiRouter.Use(AuthMiddleware(s.logger))
 
-	// Register protected routes
-	apiRouter.HandleFunc("/users", s.GetUsersHandler).Methods("GET")
+	// User endpoints
+	userEndpoints := []Endpoint{
+		{
+			Method:  http.MethodGet,
+			Path:    "/users/{id}",
+			Handler: s.GetUserByIDHandler,
+		},
+	}
+
+	// Register user endpoints
+	RegisterEndpoints(apiRouter, userEndpoints, s.logger)
 }
 
 // Router returns the server's router
