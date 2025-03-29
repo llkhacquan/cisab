@@ -1,0 +1,19 @@
+# run by: pre-commit run -a
+# you might need to install pre-commit first
+
+exclude: ^third_party/
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: detect-private-key
+      - id: fix-byte-order-marker
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [ "--fix=lf" ]
