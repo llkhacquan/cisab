@@ -1,0 +1,59 @@
+name: Go test
+
+on:
+  push:
+    branches:
+      - "master"
+      - "develop"
+  pull_request:
+    branches:
+      - "master"
+      - "develop"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pre_job:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5.3.1
+        with:
+          # All of these options are optional, so you can remove them if you are happy with the defaults
+          concurrent_skipping: "same_content_newer"
+          skip_after_successful_duplicate: "true"
+          paths_ignore: '["**/README.md", "**/docs/**", ".github/**"]'
+          do_not_skip: '["pull_request", "workflow_dispatch", "schedule"]'
+
+  go-test:
+    name: go-test
+    runs-on: ubuntu-latest
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24
+          check-latest: true
+          cache: false
+          cache-dependency-path: |
+            go.sum
+            go.mod
+      - name: Run test and coverage
+        run: go test -p $(nproc) ./... -race -timeout 20m
+        working-directory: .

@@ -1,0 +1,22 @@
+# since we use viper to load the config, all config can be overridden by env variables.
+# example: environment can be overridden by ENVIRONMENT=production;
+
+
+# Local environment configuration
+environment: local
+
+# Server configuration
+server:
+  port: 8080
+
+jwt:
+  secret: 'default-development-secret-key'
+  ttl: 86400 # in seconds (1 day)
+
+# Database configuration
+database:
+  host: localhost
+  port: 5433
+  user: postgres
+  password: password
+  name: cisab
