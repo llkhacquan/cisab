@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/llkhacquan/knovel-assignment/pkg/utils/logger"
+	"github.com/pkg/errors"
 )
 
 // Response is a generic response structure
@@ -50,15 +51,12 @@ func WriteJSON(w http.ResponseWriter, status int, response interface{}, log *log
 }
 
 // ReadJSON attempts to decode the request body into the provided destination
-func ReadJSON(w http.ResponseWriter, r *http.Request, dst interface{}, log *logger.Logger) bool {
+func ReadJSON(r *http.Request, dst interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(dst); err != nil {
-		log.Error("failed to decode request body", "error", err)
-		WriteJSON(w, http.StatusBadRequest, ErrorResponse("Invalid JSON in request body", err), log)
-		return false
+		return errors.Wrap(err, "failed to decode body")
 	}
-
-	return true
+	return nil
 }

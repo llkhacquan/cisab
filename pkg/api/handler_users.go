@@ -30,3 +30,46 @@ func (s *Server) GetUserByIDHandler(r *http.Request) (interface{}, error) {
 	// 3. Return the response
 	return response, nil
 }
+
+// CreateUserHandler handles POST requests to create a new user.
+// curl -X POST http://localhost:8080/users \
+// -H "Content-Type: application/json" \
+//
+//	-d '{
+//	 "name": "John Doe",
+//	 "email": "john.doe@example.com",
+//	 "password": "securepassword",
+//	 "role": "employee"
+//	}'
+func (s *Server) CreateUserHandler(r *http.Request) (interface{}, error) {
+	// 1. Decode request
+	var createRequest service.CreateUserRequest
+	err := ReadJSON(r, &createRequest)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid request body")
+	}
+
+	// Validate the required fields
+	if createRequest.Email == "" || createRequest.Name == "" || createRequest.Password == "" {
+		return nil, errors.New("missing required fields")
+	}
+
+	// Validate password length
+	if len(createRequest.Password) < 8 {
+		return nil, errors.New("password must be at least 8 characters")
+	}
+
+	// Validate role
+	if createRequest.Role != models.UserRoleEmployee && createRequest.Role != models.UserRoleEmployer {
+		return nil, errors.New("invalid role")
+	}
+
+	// 2. Call the business logic
+	response, err := s.userService.CreateUser(r.Context(), createRequest)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create user")
+	}
+
+	// 3. Return the response
+	return response, nil
+}
