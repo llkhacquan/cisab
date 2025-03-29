@@ -1,0 +1,6 @@
+# Local environment configuration
+environment: local
+
+# Server configuration
+server:
+  port: 8080

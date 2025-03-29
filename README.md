@@ -58,8 +58,28 @@ curl -X GET http://localhost:8080/api/v1/users -H "X-API-Key: your-api-key"
 
 ## Configuration
 
-You can configure the application using environment variables:
+The application uses a configuration system based on YAML files. Configuration files are located in the `config/` directory and are named after the environment (e.g., `local.yaml`, `production.yaml`).
 
-- `PORT` - The port the server will listen on (default: 8080)
+### Configuration Files
+
+The default configuration file is `config/local.yaml`. You can create different configuration files for different environments.
+
+Example configuration file:
+
+```yaml
+# Local environment configuration
+environment: local
+
+# Server configuration
+server:
+  port: 8080
+```
+
+### Environment Variables
+
+Configuration values can be overridden using environment variables:
+
+- `PORT` - The port the server will listen on (overrides `server.port` in the config file)
+- `ENVIRONMENT` - The current environment (e.g., `local`, `dev`, `staging`, `production`)
 
 You can also create a `.env` file in the project root to set these variables.

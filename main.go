@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/llkhacquan/knovel-assignment/pkg/api"
+	"github.com/llkhacquan/knovel-assignment/pkg/config"
+	"github.com/llkhacquan/knovel-assignment/pkg/utils/logger"
 )
 
 func main() {
@@ -16,10 +19,14 @@ func main() {
 		log.Println("No .env file found, using environment variables")
 	}
 
-	// Get port from environment variable or use default
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	// Initialize logger
+	appLogger := logger.NewDefault()
+
+	// Load configuration
+	appConfig, err := config.LoadConfigFromEnv()
+	if err != nil {
+		appLogger.Error("failed to load configuration", "error", err)
+		os.Exit(1)
 	}
 
 	// Create router with all routes and middleware
@@ -27,7 +34,7 @@ func main() {
 
 	// Configure the HTTP server
 	server := &http.Server{
-		Addr:         ":" + port,
+		Addr:         fmt.Sprintf(":%d", appConfig.Server.Port),
 		Handler:      router,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
@@ -35,8 +42,9 @@ func main() {
 	}
 
 	// Start the server
-	log.Printf("Server starting on port %s", port)
+	appLogger.Info("server starting", "port", appConfig.Server.Port, "environment", appConfig.Environment)
 	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+		appLogger.Error("server failed to start", "error", err)
+		os.Exit(1)
 	}
 }
