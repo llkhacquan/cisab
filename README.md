@@ -1,1 +1,65 @@
-# knovel-assignment
+# Knovel Simple REST API
+
+A simple HTTP REST API with middleware demonstration.
+
+## Features
+
+- HTTP REST API with Gorilla Mux
+- Multiple middleware layers:
+  - Logging middleware (logs all requests with timing)
+  - CORS middleware (handles CORS headers)
+  - Authentication middleware (mock the authentication process now)
+- Structured JSON responses
+- Environment variable configuration
+
+## API Endpoints
+
+### Public Endpoints
+
+- `GET /health` - Health check endpoint
+
+### Protected Endpoints (require X-API-Key header)
+
+- `GET /api/v1/users` - Get a list of users
+
+## Getting Started
+
+### Prerequisites
+
+- Go 1.24 or later
+
+### Running the API
+
+1. Clone the repository
+2. Install dependencies:
+   ```
+   go mod tidy
+   ```
+3. Run the server:
+   ```
+   go run main.go
+   ```
+
+The server will start on port 8080 by default. You can configure the port by setting the `PORT` environment variable.
+
+## Using the API
+
+### Health Check
+
+```
+curl -X GET http://localhost:8080/health
+```
+
+### Get Users (protected endpoint)
+
+```
+curl -X GET http://localhost:8080/api/v1/users -H "X-API-Key: your-api-key"
+```
+
+## Configuration
+
+You can configure the application using environment variables:
+
+- `PORT` - The port the server will listen on (default: 8080)
+
+You can also create a `.env` file in the project root to set these variables.
