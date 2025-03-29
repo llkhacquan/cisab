@@ -37,18 +37,6 @@ func CorsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// AuthMiddleware is a simple auth middleware that checks for an API key
-// For demonstration purposes only - not secure for production
-func AuthMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// todo: implement actual authentication logic
-			// now we just assume the request is authenticated
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
 func DBTransactionMiddleware(l *logger.Logger, db *gorm.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

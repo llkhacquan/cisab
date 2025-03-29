@@ -47,12 +47,14 @@ func main() {
 
 	// Initialize repositories
 	userRepo := repo.NewUserRepoImpl(dbctx.Get)
+	taskRepo := repo.NewTaskRepoImpl(dbctx.Get)
 
 	// Initialize services
 	userService := service.NewUserService(userRepo, appConfig.JWT)
+	taskService := service.NewTaskService(taskRepo, userRepo)
 
 	// Create API server with services
-	apiServer := api.NewServer(userService, appLogger, db)
+	apiServer := api.NewServer(userService, taskService, userRepo, appLogger, db, appConfig.JWT.Secret)
 
 	// Configure the HTTP server
 	server := &http.Server{

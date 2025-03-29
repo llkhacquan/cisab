@@ -25,9 +25,10 @@ A simple HTTP REST API with middleware demonstration.
 
 - `GET /api/v1/users/{id}` - Get a user by ID
 - `POST /api/v1/users` - Create a new user
+- `POST /api/v1/tasks` - Create a new task
 
 For detailed API documentation with request/response examples,
-see [User Service API Documentation](docs/user_service.md).
+see [API Documentation](docs/user_service.md).
 
 ## Getting Started
 
@@ -77,6 +78,60 @@ go run cmd/migrate/main.go
    ```
 
 The server will start on port 8080 by default. You can configure the port by setting the `PORT` environment variable.
+
+## Using the API
+
+### Health Check
+
+```bash
+curl -X GET http://localhost:8080/health
+```
+
+### Register a new user
+
+```bash
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "password": "securepassword",
+    "role": "employee"
+  }'
+```
+
+### Login and get JWT token
+
+```bash
+curl -X POST http://localhost:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "securepassword"
+  }'
+```
+
+### Get user by ID (protected endpoint)
+
+```bash
+curl -X GET http://localhost:8080/api/v1/users/1 \
+  -H "Authorization: Bearer your-jwt-token"
+```
+
+### Create a new task (protected endpoint)
+
+```bash
+curl -X POST http://localhost:8080/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
+  -d '{
+    "title": "Implement user authentication",
+    "description": "Add JWT-based authentication to the API",
+    "due_date": "2023-04-15T00:00:00Z"
+  }'
+```
+
+For more examples and detailed API documentation, see [API Documentation](docs/user_service.md).
 
 ## Configuration
 

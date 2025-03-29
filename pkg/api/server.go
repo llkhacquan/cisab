@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/llkhacquan/knovel-assignment/pkg/repo"
 	"github.com/llkhacquan/knovel-assignment/pkg/service"
 	"github.com/llkhacquan/knovel-assignment/pkg/utils/logger"
 	"gorm.io/gorm"
@@ -14,16 +15,22 @@ type Server struct {
 	router      *mux.Router
 	logger      *logger.Logger
 	userService service.UserService
+	taskService service.TaskService
+	userRepo    repo.UserRepo
 	gormDB      *gorm.DB
+	jwtSecret   string
 }
 
 // NewServer creates a new HTTP server
-func NewServer(userService service.UserService, log *logger.Logger, gormDB *gorm.DB) *Server {
+func NewServer(userService service.UserService, taskService service.TaskService, userRepo repo.UserRepo, log *logger.Logger, gormDB *gorm.DB, jwtSecret string) *Server {
 	server := &Server{
 		router:      mux.NewRouter(),
 		logger:      log,
 		userService: userService,
+		taskService: taskService,
+		userRepo:    userRepo,
 		gormDB:      gormDB,
+		jwtSecret:   jwtSecret,
 	}
 
 	// Set up routes
@@ -38,8 +45,8 @@ func (s *Server) setupRoutes() {
 	s.router.Use(LoggingMiddleware(s.logger))
 	s.router.Use(CorsMiddleware)
 
-	// Public endpoints
-	publicEndpoints := []Endpoint{
+	// Non-API endpoints (health check)
+	healthEndpoint := []Endpoint{
 		{
 			Method:  http.MethodGet,
 			Path:    "/health",
@@ -47,16 +54,23 @@ func (s *Server) setupRoutes() {
 		},
 	}
 
-	// Register public endpoints
-	RegisterEndpoints(s.router, publicEndpoints, s.logger)
+	// Register health endpoint directly on main router
+	RegisterEndpoints(s.router, healthEndpoint, s.logger)
 
-	// API router with auth middleware
+	// Create API router with middlewares
 	apiRouter := s.router.PathPrefix("/api/v1").Subrouter()
 	apiRouter.Use(DBTransactionMiddleware(s.logger, s.gormDB))
-	apiRouter.Use(AuthMiddleware(s.logger))
+	apiRouter.Use(AuthMiddleware(s.logger, s.userRepo, s.jwtSecret))
 
-	// User endpoints
-	userEndpoints := []Endpoint{
+	// All API endpoints
+	apiEndpoints := []Endpoint{
+		// Public endpoints (authentication is handled by the middleware)
+		{
+			Method:  http.MethodPost,
+			Path:    "/login",
+			Handler: s.LoginHandler,
+		},
+		// User endpoints
 		{
 			Method:  http.MethodGet,
 			Path:    "/users/{id}",
@@ -67,15 +81,16 @@ func (s *Server) setupRoutes() {
 			Path:    "/users",
 			Handler: s.CreateUserHandler,
 		},
+		// Task endpoints
 		{
 			Method:  http.MethodPost,
-			Path:    "/login",
-			Handler: s.LoginHandler,
+			Path:    "/tasks",
+			Handler: s.CreateTaskHandler,
 		},
 	}
 
-	// Register user endpoints
-	RegisterEndpoints(apiRouter, userEndpoints, s.logger)
+	// Register all API endpoints
+	RegisterEndpoints(apiRouter, apiEndpoints, s.logger)
 }
 
 // Router returns the server's router
