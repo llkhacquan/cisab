@@ -11,3 +11,10 @@ test:
 	go test ./... -timeout 10m
 
 check: lint test
+
+# Database commands
+db-up:
+	docker-compose up -d db
+
+db-down:
+	docker-compose down

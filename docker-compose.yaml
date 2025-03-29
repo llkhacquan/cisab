@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16.6-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=knovel
+      - POSTGRES_PORT=5433
+      - PGUSER=postgres
+    ports:
+      - '5433:5432' # using 5433 to avoid conflict with local postgres
+    volumes:
+      - knoveldb:/var/lib/postgresql/data
+      - ./scripts/db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 120s
+      retries: 12
+  redis:
+    image: valkey/valkey
+    ports:
+      - "6380:6379" # using 6380 to avoid conflict with local redis
+
+volumes:
+  knoveldb:
+    driver: local
