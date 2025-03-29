@@ -73,3 +73,34 @@ func (s *Server) CreateUserHandler(r *http.Request) (interface{}, error) {
 	// 3. Return the response
 	return response, nil
 }
+
+// LoginHandler handles POST requests to authenticate a user and generate a JWT token
+// curl -X POST http://localhost:8080/api/v1/login \
+// -H "Content-Type: application/json" \
+//
+//	-d '{
+//	  "email": "john.doe@example.com",
+//	  "password": "securepassword"
+//	}'
+func (s *Server) LoginHandler(r *http.Request) (interface{}, error) {
+	// 1. Decode request
+	var loginRequest service.GetJWTRequest
+	err := ReadJSON(r, &loginRequest)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid request body")
+	}
+
+	// Validate the required fields
+	if loginRequest.Email == "" || loginRequest.Password == "" {
+		return nil, errors.New("missing required fields")
+	}
+
+	// 2. Call the business logic
+	response, err := s.userService.GetJWTToken(r.Context(), loginRequest)
+	if err != nil {
+		return nil, errors.Wrap(err, "authentication failed")
+	}
+
+	// 3. Return the response
+	return response, nil
+}

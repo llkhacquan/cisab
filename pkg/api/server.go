@@ -67,6 +67,11 @@ func (s *Server) setupRoutes() {
 			Path:    "/users",
 			Handler: s.CreateUserHandler,
 		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/login",
+			Handler: s.LoginHandler,
+		},
 	}
 
 	// Register user endpoints

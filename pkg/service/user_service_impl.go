@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"time"
 
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/llkhacquan/knovel-assignment/pkg/config"
 	"github.com/llkhacquan/knovel-assignment/pkg/models"
 	"github.com/llkhacquan/knovel-assignment/pkg/repo"
 	"github.com/pkg/errors"
@@ -12,6 +15,15 @@ import (
 // userService implements the UserService interface
 type userService struct {
 	userRepo repo.UserRepo
+	jwt      config.JWTConfig
+}
+
+// NewUserService creates a new UserService
+func NewUserService(userRepo repo.UserRepo, jwt config.JWTConfig) UserService {
+	return &userService{
+		userRepo: userRepo,
+		jwt:      jwt,
+	}
 }
 
 func (u *userService) GetUsers(ctx context.Context, request GetUsersRequest) (GetUsersResponse, error) {
@@ -62,6 +74,50 @@ func (u *userService) CreateUser(ctx context.Context, request CreateUserRequest)
 	}, nil
 }
 
+func (u *userService) GetJWTToken(ctx context.Context, request GetJWTRequest) (*GetJWTResponse, error) {
+	// Find user by email
+	user, err := u.userRepo.GetUserByEmail(ctx, request.Email)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find user")
+	}
+	if user == nil {
+		return nil, errors.New("invalid credentials: user not found")
+	}
+
+	// Verify password
+	if !comparePasswords(user.PasswordHash, request.Password) {
+		return nil, errors.New("invalid credentials: password mismatch")
+	}
+
+	// Define token expiration time (e.g., 24 hours)
+	expirationTime := time.Now().Add(time.Duration(u.jwt.TTLInSecond) * time.Second)
+
+	// Create claims with user information
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"role":    user.Role,
+		"exp":     expirationTime.Unix(),
+		"iat":     time.Now().Unix(),
+	}
+
+	// Create token with claims and signing method
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign token with secret key
+	tokenString, err := token.SignedString([]byte(u.jwt.Secret))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to sign token")
+	}
+
+	// Return response with token and user information
+	return &GetJWTResponse{
+		Token:       tokenString,
+		User:        *user,
+		TokenExpiry: expirationTime.Unix(),
+	}, nil
+}
+
 // hashPassword is a simple password hashing function using bcrypt with default cost
 func hashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -71,9 +127,8 @@ func hashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
-// NewUserService creates a new UserService
-func NewUserService(userRepo repo.UserRepo) UserService {
-	return &userService{
-		userRepo: userRepo,
-	}
+// comparePasswords compares a hashed password with a plain text password
+func comparePasswords(hashedPassword, plainPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
+	return err == nil
 }

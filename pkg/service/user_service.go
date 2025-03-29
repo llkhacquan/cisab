@@ -16,6 +16,9 @@ type UserService interface {
 
 	// CreateUser creates a new user
 	CreateUser(ctx context.Context, request CreateUserRequest) (*CreateUserResponse, error)
+
+	// GetJWTToken generates and returns a JWT token for authentication
+	GetJWTToken(ctx context.Context, request GetJWTRequest) (*GetJWTResponse, error)
 }
 
 type GetUsersRequest struct {
@@ -42,4 +45,15 @@ type CreateUserRequest struct {
 
 type CreateUserResponse struct {
 	User models.User `json:"user"`
+}
+
+type GetJWTRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+type GetJWTResponse struct {
+	Token       string      `json:"token"`
+	User        models.User `json:"user"`
+	TokenExpiry int64       `json:"token_expiry"`
 }

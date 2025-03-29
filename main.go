@@ -49,7 +49,7 @@ func main() {
 	userRepo := repo.NewUserRepoImpl(dbctx.Get)
 
 	// Initialize services
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, appConfig.JWT)
 
 	// Create API server with services
 	apiServer := api.NewServer(userService, appLogger, db)

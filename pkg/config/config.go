@@ -14,6 +14,8 @@ type Config struct {
 	// Server configuration
 	Server ServerConfig `yaml:"server"`
 
+	JWT JWTConfig `yaml:"jwt"`
+
 	// Database configuration
 	Database DatabaseConfig `yaml:"database"`
 
@@ -25,6 +27,11 @@ type Config struct {
 type ServerConfig struct {
 	// Port to run the server on
 	Port int `yaml:"port"`
+}
+
+type JWTConfig struct {
+	Secret      string `yaml:"secret"`
+	TTLInSecond int    `yaml:"ttl"`
 }
 
 // DatabaseConfig holds the database-related configuration

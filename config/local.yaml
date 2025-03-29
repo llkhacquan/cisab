@@ -5,6 +5,10 @@ environment: local
 server:
   port: 8080
 
+jwt:
+  secret: 'default-development-secret-key'
+  ttl: 86400 # in seconds (1 day)
+
 # Database configuration
 database:
   host: localhost
