@@ -30,9 +30,9 @@ func (s *userService) GetUsers(ctx context.Context) ([]models.User, error) {
 	// In a real application, this would fetch users from a database
 	// For now, we'll return mock data
 	return []models.User{
-		{ID: 1, Username: "johndoe"},
-		{ID: 2, Username: "janedoe"},
-		{ID: 3, Username: "bobsmith"},
+		{ID: 1, Name: "johndoe"},
+		{ID: 2, Name: "janedoe"},
+		{ID: 3, Name: "bobsmith"},
 	}, nil
 }
 
