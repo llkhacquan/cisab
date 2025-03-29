@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/llkhacquan/knovel-assignment/pkg/api"
 	"github.com/llkhacquan/knovel-assignment/pkg/config"
+	"github.com/llkhacquan/knovel-assignment/pkg/service"
 	"github.com/llkhacquan/knovel-assignment/pkg/utils/logger"
 )
 
@@ -29,13 +30,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create router with all routes and middleware
-	router := api.NewRouter()
+	// Initialize services
+	userService := service.NewUserService()
+
+	// Create API server with services
+	apiServer := api.NewServer(userService, appLogger)
 
 	// Configure the HTTP server
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", appConfig.Server.Port),
-		Handler:      router,
+		Handler:      apiServer.Router(),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,

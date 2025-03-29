@@ -3,19 +3,10 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-
-	"github.com/llkhacquan/knovel-assignment/pkg/models"
 )
 
-// Response is a generic response structure
-type Response struct {
-	Status  string      `json:"status"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-}
-
 // HealthCheckHandler handles health check requests
-func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	response := Response{
 		Status:  "success",
 		Message: "API is running",
@@ -23,6 +14,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
+		s.logger.Error("failed to marshal health check response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -30,24 +22,21 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(jsonResponse); err != nil {
+		s.logger.Error("failed to write health check response", "error", err)
 		http.Error(w, "Error writing response", http.StatusInternalServerError)
 		return
 	}
 }
 
-// getUsers returns mock user data
-func getUsers() []models.User {
-	return []models.User{
-		{ID: 1, Username: "johndoe", Email: "john@example.com", Role: "admin"},
-		{ID: 2, Username: "janedoe", Email: "jane@example.com", Role: "user"},
-		{ID: 3, Username: "bobsmith", Email: "bob@example.com", Role: "user"},
-	}
-}
-
 // GetUsersHandler handles GET requests for users
-func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
-	// Get mock data
-	users := getUsers()
+func (s *Server) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
+	// Get users from the service layer
+	users, err := s.userService.GetUsers(r.Context())
+	if err != nil {
+		s.logger.Error("failed to get users", "error", err)
+		http.Error(w, "Failed to get users", http.StatusInternalServerError)
+		return
+	}
 
 	response := Response{
 		Status:  "success",
@@ -57,6 +46,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
+		s.logger.Error("failed to marshal users response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -64,6 +54,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(jsonResponse); err != nil {
+		s.logger.Error("failed to write users response", "error", err)
 		http.Error(w, "Error writing response", http.StatusInternalServerError)
 		return
 	}
