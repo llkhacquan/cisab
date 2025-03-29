@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/llkhacquan/knovel-assignment/pkg/service"
 	"github.com/llkhacquan/knovel-assignment/pkg/utils/logger"
+	"gorm.io/gorm"
 )
 
 // Server represents the HTTP server
@@ -13,14 +14,16 @@ type Server struct {
 	router      *mux.Router
 	logger      *logger.Logger
 	userService service.UserService
+	gormDB      *gorm.DB
 }
 
 // NewServer creates a new HTTP server
-func NewServer(userService service.UserService, log *logger.Logger) *Server {
+func NewServer(userService service.UserService, log *logger.Logger, gormDB *gorm.DB) *Server {
 	server := &Server{
 		router:      mux.NewRouter(),
 		logger:      log,
 		userService: userService,
+		gormDB:      gormDB,
 	}
 
 	// Set up routes
@@ -49,6 +52,7 @@ func (s *Server) setupRoutes() {
 
 	// API router with auth middleware
 	apiRouter := s.router.PathPrefix("/api/v1").Subrouter()
+	apiRouter.Use(DBTransactionMiddleware(s.logger, s.gormDB))
 	apiRouter.Use(AuthMiddleware(s.logger))
 
 	// User endpoints

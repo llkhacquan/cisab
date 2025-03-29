@@ -4,3 +4,11 @@ environment: local
 # Server configuration
 server:
   port: 8080
+
+# Database configuration
+database:
+  host: localhost
+  port: 5433
+  user: postgres
+  password: password
+  name: knovel

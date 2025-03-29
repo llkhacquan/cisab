@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/llkhacquan/knovel-assignment/pkg/dbctx"
 	"github.com/llkhacquan/knovel-assignment/pkg/utils/logger"
+	"gorm.io/gorm"
 )
 
 // LoggingMiddleware logs information about each HTTP request
@@ -45,4 +47,35 @@ func AuthMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func DBTransactionMiddleware(l *logger.Logger, db *gorm.DB) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Create a response recorder to capture the status code
+			rec := &responseRecorder{ResponseWriter: w, statusCode: http.StatusOK}
+			tx := db.Begin()
+			r = r.WithContext(dbctx.Set(r.Context(), tx))
+			next.ServeHTTP(rec, r)
+			if rec.statusCode != http.StatusOK {
+				tx.Rollback()
+			} else {
+				if err := tx.Commit().Error; err != nil {
+					http.Error(w, "Failed to commit transaction", http.StatusInternalServerError)
+					l.Error("failed to commit transaction", "error", err)
+				}
+			}
+		})
+	}
+}
+
+// responseRecorder is a custom http.ResponseWriter to capture the status code
+type responseRecorder struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rec *responseRecorder) WriteHeader(code int) {
+	rec.statusCode = code
+	rec.ResponseWriter.WriteHeader(code)
 }

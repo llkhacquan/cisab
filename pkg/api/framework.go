@@ -28,7 +28,7 @@ func HandleEndpoint(e Endpoint, log *logger.Logger) http.HandlerFunc {
 		// Todo: we should have custom error handling here later
 		if err != nil {
 			log.Error("error in request handler", "path", r.URL.Path, "method", r.Method, "error", err.Error())
-			errorResp := ErrorResponse("Internal server error", nil)
+			errorResp := ErrorResponse("Internal server error", err)
 			WriteJSON(w, http.StatusInternalServerError, errorResp, log)
 			return
 		}

@@ -10,8 +10,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/llkhacquan/knovel-assignment/pkg/api"
 	"github.com/llkhacquan/knovel-assignment/pkg/config"
+	"github.com/llkhacquan/knovel-assignment/pkg/dbctx"
+	"github.com/llkhacquan/knovel-assignment/pkg/repo"
 	"github.com/llkhacquan/knovel-assignment/pkg/service"
 	"github.com/llkhacquan/knovel-assignment/pkg/utils/logger"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -30,11 +34,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize database connection
+	dbConfig := appConfig.Database
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		dbConfig.Host, dbConfig.Port, dbConfig.User, dbConfig.Password, dbConfig.Name)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		appLogger.Error("failed to connect to database", "error", err)
+		os.Exit(1)
+	}
+
+	// Initialize repositories
+	userRepo := repo.NewUserRepoImpl(dbctx.Get)
+
 	// Initialize services
-	userService := service.NewUserService()
+	userService := service.NewUserService(userRepo)
 
 	// Create API server with services
-	apiServer := api.NewServer(userService, appLogger)
+	apiServer := api.NewServer(userService, appLogger, db)
 
 	// Configure the HTTP server
 	server := &http.Server{

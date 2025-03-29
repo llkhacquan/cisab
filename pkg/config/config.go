@@ -14,6 +14,9 @@ type Config struct {
 	// Server configuration
 	Server ServerConfig `yaml:"server"`
 
+	// Database configuration
+	Database DatabaseConfig `yaml:"database"`
+
 	// Environment (dev, staging, production)
 	Environment string `yaml:"environment"`
 }
@@ -24,11 +27,32 @@ type ServerConfig struct {
 	Port int `yaml:"port"`
 }
 
+// DatabaseConfig holds the database-related configuration
+type DatabaseConfig struct {
+	// Host is the database host
+	Host string `yaml:"host"`
+	// Port is the database port
+	Port int `yaml:"port"`
+	// User is the database user
+	User string `yaml:"user"`
+	// Password is the database password
+	Password string `yaml:"password"`
+	// Name is the database name
+	Name string `yaml:"name"`
+}
+
 // DefaultConfig returns the default configuration
 func DefaultConfig() *Config {
 	return &Config{
 		Server: ServerConfig{
 			Port: 8080,
+		},
+		Database: DatabaseConfig{
+			Host:     "localhost",
+			Port:     5433,
+			User:     "postgres",
+			Password: "password",
+			Name:     "knovel",
 		},
 		Environment: "dev",
 	}
