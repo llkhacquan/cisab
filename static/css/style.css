@@ -145,6 +145,49 @@ table tr:hover {
   background-color: #2ecc71;
 }
 
+/* Task status cell colors */
+.task-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.task-status.pending {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.task-status.in-progress {
+  background-color: #cce5ff;
+  color: #004085;
+  border: 1px solid #b8daff;
+}
+
+.task-status.completed {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+/* Due date indicators */
+.due-date {
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.due-date.upcoming {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.due-date.overdue {
+  background-color: #f8d7da;
+  color: #721c24;
+  font-weight: bold;
+}
+
 /* Make table actions fit better */
 table .task-actions {
   display: flex;

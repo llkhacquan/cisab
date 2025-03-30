@@ -54,6 +54,9 @@ const ui = {
         employeeTaskList: document.getElementById('employeeTaskList'),
         employeeTaskTable: document.getElementById('employeeTaskTable'),
         employeeTaskTableBody: document.getElementById('employeeTaskTableBody'),
+        employeeTaskStatusFilter: document.getElementById('employeeTaskStatusFilter'),
+        employeeTaskSortBy: document.getElementById('employeeTaskSortBy'),
+        employeeTaskSortOrder: document.getElementById('employeeTaskSortOrder'),
         employeeSummary: document.getElementById('employeeSummary')
     },
 
@@ -240,17 +243,39 @@ const ui = {
         }
     },
 
-    // Load tasks assigned to the current employee (for employee dashboard)
+    // Load tasks assigned to the current employee (for employee dashboard) with filtering
     loadEmployeeAssignedTasks: async () => {
         console.log('Loading assigned tasks for employee');
-        const taskResult = await tasks.getAssignedTasks();
+
+        // Show loading indicator
+        const tableBody = ui.elements.employeeTaskTableBody;
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading tasks...</td></tr>';
+
+        // Get filter parameters from UI controls
+        const params = {
+            status: ui.elements.employeeTaskStatusFilter.value,
+            sort_by: ui.elements.employeeTaskSortBy.value,
+            sort_order: ui.elements.employeeTaskSortOrder.value,
+            limit: 50  // Default limit
+        };
+
+        // Remove empty values
+        Object.keys(params).forEach(key => {
+            if (params[key] === null || params[key] === '') {
+                delete params[key];
+            }
+        });
+
+        console.log('Fetching assigned tasks with params:', params);
+
+        const taskResult = await tasks.getAssignedTasks(params);
         console.log('Assigned tasks result:', taskResult);
         if (taskResult && taskResult.status === 'success') {
             console.log('Tasks assigned to employee:', taskResult.data.tasks);
             ui.updateEmployeeTaskList(taskResult.data.tasks);
         } else {
             console.error('Failed to load assigned tasks:', taskResult);
-            ui.elements.employeeTaskList.innerHTML = '<p>Error loading tasks. Please try again.</p>';
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Error loading tasks. Please try again.</td></tr>';
         }
     },
 
@@ -329,7 +354,7 @@ const ui = {
 
         if (!tasksData || tasksData.length === 0) {
             const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = '<td colspan="6" style="text-align: center;">No tasks found</td>';
+            emptyRow.innerHTML = '<td colspan="7" style="text-align: center;">No tasks found</td>';
             tableBody.appendChild(emptyRow);
             return;
         }
@@ -347,8 +372,22 @@ const ui = {
 
             // Format the due date if available
             let dueDate = 'Not set';
+            let dueDateClass = '';
+
             if (task.due_date) {
-                dueDate = new Date(task.due_date).toLocaleString();
+                const dueDateTime = new Date(task.due_date);
+                dueDate = dueDateTime.toLocaleString();
+
+                // Add due date indicator
+                const now = new Date();
+                const threeDaysFromNow = new Date();
+                threeDaysFromNow.setDate(now.getDate() + 3);
+
+                if (dueDateTime < now) {
+                    dueDateClass = 'overdue';
+                } else if (dueDateTime < threeDaysFromNow) {
+                    dueDateClass = 'upcoming';
+                }
             }
 
             // Get assignee name if available
@@ -359,20 +398,31 @@ const ui = {
                 assigneeName = `Employee ID: ${task.assignee_id}`;
             }
 
-            // Format status
+            // Format status with visual indicator
             let formattedStatus = task.status;
+            let statusClass = '';
+
             switch (task.status) {
-                case 'pending': formattedStatus = 'Pending'; break;
-                case 'in_progress': formattedStatus = 'In Progress'; break;
-                case 'completed': formattedStatus = 'Completed'; break;
+                case 'pending':
+                    formattedStatus = 'Pending';
+                    statusClass = 'pending';
+                    break;
+                case 'in_progress':
+                    formattedStatus = 'In Progress';
+                    statusClass = 'in-progress';
+                    break;
+                case 'completed':
+                    formattedStatus = 'Completed';
+                    statusClass = 'completed';
+                    break;
             }
 
             row.innerHTML = `
                 <td>${task.id}</td>
                 <td>${task.title}</td>
                 <td>${task.description || 'No description'}</td>
-                <td>${formattedStatus}</td>
-                <td>${dueDate}</td>
+                <td><span class="task-status ${statusClass}">${formattedStatus}</span></td>
+                <td><span class="due-date ${dueDateClass}">${dueDate}</span></td>
                 <td>${assigneeName}</td>
                 <td>
                     <button class="assign-task-btn" data-task-id="${task.id}" data-task-title="${task.title}">Assign</button>
@@ -443,7 +493,7 @@ const ui = {
             if (task.status === 'pending') formattedStatus = 'Pending';
             else if (task.status === 'in_progress') formattedStatus = 'In Progress';
             else if (task.status === 'completed') formattedStatus = 'Completed';
-            
+
             taskCard.innerHTML = `
                 <h4>${task.title}</h4>
                 <p>${task.description || 'No description'}</p>
@@ -491,22 +541,49 @@ const ui = {
 
             // Format the due date if available
             let dueDate = 'Not set';
+            let dueDateClass = '';
+
             if (task.due_date) {
-                dueDate = new Date(task.due_date).toLocaleString();
+                const dueDateTime = new Date(task.due_date);
+                dueDate = dueDateTime.toLocaleString();
+
+                // Add due date indicator
+                const now = new Date();
+                const threeDaysFromNow = new Date();
+                threeDaysFromNow.setDate(now.getDate() + 3);
+
+                if (dueDateTime < now) {
+                    dueDateClass = 'overdue';
+                } else if (dueDateTime < threeDaysFromNow) {
+                    dueDateClass = 'upcoming';
+                }
             }
 
-            // Format the status properly without relying on external function
+            // Format the status properly with visual indicator
             let formattedStatus = task.status;
-            if (task.status === 'pending') formattedStatus = 'Pending';
-            else if (task.status === 'in_progress') formattedStatus = 'In Progress';
-            else if (task.status === 'completed') formattedStatus = 'Completed';
+            let statusClass = '';
+
+            switch (task.status) {
+                case 'pending':
+                    formattedStatus = 'Pending';
+                    statusClass = 'pending';
+                    break;
+                case 'in_progress':
+                    formattedStatus = 'In Progress';
+                    statusClass = 'in-progress';
+                    break;
+                case 'completed':
+                    formattedStatus = 'Completed';
+                    statusClass = 'completed';
+                    break;
+            }
 
             row.innerHTML = `
                 <td>${task.id}</td>
                 <td>${task.title}</td>
                 <td>${task.description || 'No description'}</td>
-                <td>${formattedStatus}</td>
-                <td>${dueDate}</td>
+                <td><span class="task-status ${statusClass}">${formattedStatus}</span></td>
+                <td><span class="due-date ${dueDateClass}">${dueDate}</span></td>
                 <td>
                     <div class="task-actions">
                         <button class="task-status-btn" data-task-id="${task.id}" data-status="pending">Set Pending</button>

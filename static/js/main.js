@@ -162,6 +162,11 @@ function setupEventListeners() {
     ui.elements.taskSortBy.addEventListener('change', () => ui.loadTaskTable());
     ui.elements.taskSortOrder.addEventListener('change', () => ui.loadTaskTable());
 
+    // Employee task filter controls
+    ui.elements.employeeTaskStatusFilter.addEventListener('change', () => ui.loadEmployeeAssignedTasks());
+    ui.elements.employeeTaskSortBy.addEventListener('change', () => ui.loadEmployeeAssignedTasks());
+    ui.elements.employeeTaskSortOrder.addEventListener('change', () => ui.loadEmployeeAssignedTasks());
+
     // Close assign task modal button
     ui.elements.closeAssignModalBtn.addEventListener('click', () => {
         ui.closeAssignTaskModal();

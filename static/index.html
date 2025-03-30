@@ -109,6 +109,35 @@
             <div id="employeePanel" class="hidden">
                 <h2>Employee Dashboard</h2>
                 <h3>My Tasks</h3>
+
+                <div class="task-filters">
+                    <div class="form-group">
+                        <label for="employeeTaskStatusFilter">Filter by Status:</label>
+                        <select id="employeeTaskStatusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="employeeTaskSortBy">Sort By:</label>
+                        <select id="employeeTaskSortBy">
+                            <option value="created_at">Creation Date</option>
+                            <option value="updated_at">Update Date</option>
+                            <option value="due_date">Due Date</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="employeeTaskSortOrder">Sort Order:</label>
+                        <select id="employeeTaskSortOrder">
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="table-container">
                     <table id="employeeTaskTable">
                         <thead>
