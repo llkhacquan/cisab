@@ -18,10 +18,24 @@ services:
       interval: 10s
       timeout: 120s
       retries: 12
-  redis:
-    image: valkey/valkey
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=password
+      - DATABASE_NAME=knovel
+      - PORT=8080
     ports:
-      - "6380:6379" # using 6380 to avoid conflict with local redis
+      - '8080:8080'
 
 volumes:
   knoveldb:

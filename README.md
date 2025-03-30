@@ -45,25 +45,96 @@ For detailed API documentation with request/response examples, see:
 ### Prerequisites
 
 - Go 1.24 or later
-- Docker and Docker Compose (for running PostgreSQL)
+- Docker and Docker Compose (for containerization)
+- Make (optional, for running Makefile commands)
 
-### Running the test
+### Quick Start (with Make)
+
+The easiest way to get started is using the `setup` command provided in the Makefile:
+
+```bash
+# Clone the repository
+git clone https://github.com/llkhacquan/knovel-assignment.git
+cd knovel-assignment
+
+# Run the setup command
+make setup
+```
+
+This will:
+1. Stop any existing containers
+2. Start the PostgreSQL database
+3. Run database migrations
+
+### Running the Tests
+
+Run all tests and linting:
 
 ```bash
 make check
 ```
 
-### Setting up the database
+This command will:
+1. Format code using goimports
+2. Run linters (golangci-lint, pre-commit hooks)
+3. Run all tests
 
-The project uses PostgreSQL as the database. You can easily set it up using Docker Compose:
+### Using Docker
+
+#### Running with Docker Compose (recommended)
 
 ```bash
+# Build and start all services (PostgreSQL, API)
 docker-compose up -d
+
+# To stop all services
+docker-compose down
 ```
 
-This will start PostgreSQL on port 5433.
+The API will be available at http://localhost:8080
 
-### Database migrations
+#### Running Only the Database
+
+If you want to run the PostgreSQL database in Docker but develop the API locally:
+
+```bash
+# Start only the database
+make db-up
+
+# Run migrations
+go run cmd/migrate/main.go
+
+# Run the API locally
+go run main.go
+```
+
+#### Building and Running the API Container Manually
+
+```bash
+# Build the Docker image
+make build
+
+# Run the container
+make run
+```
+
+### Manual Setup (without Docker)
+
+If you prefer to run everything locally:
+
+1. Install PostgreSQL locally
+2. Create a database named `knovel`
+3. Update the database configuration in `config/local.yaml` to point to your local database
+4. Run migrations:
+   ```bash
+   go run cmd/migrate/main.go
+   ```
+5. Start the API:
+   ```bash
+   go run main.go
+   ```
+
+### Database Migrations
 
 Before running the application for the first time, you need to run the database migrations:
 
@@ -71,23 +142,33 @@ Before running the application for the first time, you need to run the database 
 go run cmd/migrate/main.go
 ```
 
-### Running the API
+This will create all the necessary tables in the database.
 
-1. Clone the repository
-2. Install dependencies:
-   ```
-   go mod tidy
-   ```
-3. Start the database:
-   ```
-   docker-compose up -d
-   ```
-4. Run the server:
-   ```
-   go run main.go
-   ```
+### Project Structure
 
-The server will start on port 8080 by default. You can configure the port by setting the `PORT` environment variable.
+```
+knovel/
+├── cmd/
+│   └── migrate/        # Database migration tool
+├── config/             # Configuration files
+├── db/                 # Database migrations
+├── docs/               # API documentation
+├── pkg/
+│   ├── api/            # HTTP API handlers and middleware
+│   ├── authctx/        # Authentication context
+│   ├── config/         # Configuration loading
+│   ├── dbctx/          # Database context
+│   ├── models/         # Data models
+│   ├── repo/           # Data access layer
+│   ├── service/        # Business logic
+│   ├── testutil/       # Testing utilities
+│   └── utils/          # Utility functions
+├── scripts/            # Helper scripts
+├── docker-compose.yaml # Docker Compose configuration
+├── Dockerfile          # Docker build configuration
+├── Makefile            # Make commands
+└── README.md           # This file
+```
 
 ## Using the API
 
@@ -212,5 +293,65 @@ Configuration values can be overridden using environment variables:
 
 - `PORT` - The port the server will listen on (overrides `server.port` in the config file)
 - `ENVIRONMENT` - The current environment (e.g., `local`, `dev`, `staging`, `production`)
+- `DATABASE_HOST` - Database hostname (overrides `database.host` in the config file)
+- `DATABASE_PORT` - Database port (overrides `database.port` in the config file)
+- `DATABASE_USER` - Database username (overrides `database.user` in the config file)
+- `DATABASE_PASSWORD` - Database password (overrides `database.password` in the config file)
+- `DATABASE_NAME` - Database name (overrides `database.name` in the config file)
+- `JWT_SECRET` - Secret key for JWT token signing (overrides `jwt.secret` in the config file)
+- `JWT_TTL_SECOND` - JWT token expiration time in seconds (overrides `jwt.ttl_second` in the config file)
 
 You can also create a `.env` file in the project root to set these variables.
+
+## Troubleshooting
+
+### Common Issues
+
+#### Database Connection Issues
+
+If you're having trouble connecting to the database:
+
+1. Verify PostgreSQL is running:
+   ```bash
+   docker ps
+   ```
+
+2. Check the database logs:
+   ```bash
+   docker-compose logs db
+   ```
+
+3. Make sure the database configuration matches your environment:
+   - When running locally: use `localhost` as the host and `5433` as the port
+   - When running in Docker: use `db` as the host and `5432` as the port (within the Docker network)
+
+#### Migration Issues
+
+If database migrations fail:
+
+1. Make sure the database exists and is accessible
+2. Check the migration logs for specific errors:
+   ```bash
+   go run cmd/migrate/main.go -v
+   ```
+
+#### API Server Issues
+
+If the API server fails to start:
+
+1. Check the logs for error messages
+2. Verify that all required environment variables are set
+3. Make sure the database is running and migrations have been applied
+4. Check that the port (default: 8080) is not already in use
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

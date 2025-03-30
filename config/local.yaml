@@ -1,3 +1,7 @@
+# since we use viper to load the config, all config can be overridden by env variables.
+# example: environment can be overridden by ENVIRONMENT=production;
+
+
 # Local environment configuration
 environment: local
 
