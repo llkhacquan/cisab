@@ -291,3 +291,52 @@ func (s *taskService) GetTasks(ctx context.Context, request GetTasksRequest) (*G
 		TotalCount: totalCount,
 	}, nil
 }
+
+// GetEmployeeTaskSummary returns a summary of task statistics for each employee
+func (s *taskService) GetEmployeeTaskSummary(ctx context.Context, request GetEmployeeTaskSummaryRequest) (*GetEmployeeTaskSummaryResponse, error) {
+	// Check authentication
+	authMD := authctx.Get(ctx)
+	if authMD.User.ID == 0 {
+		return nil, ErrUnauthorized
+	}
+
+	// Only employers can access this endpoint
+	if authMD.User.Role != models.UserRoleEmployer {
+		return nil, NewInvalidInputError("only employers can view employee task summaries")
+	}
+
+	// Get statistics for all users (the repo method returns only employees with tasks)
+	statistics, err := s.taskRepo.GetTaskStatistics(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get task statistics")
+	}
+
+	// Build the response
+	var employeeSummaries []EmployeeSummary
+	for userID, stats := range statistics {
+		// Get employee details
+		employee, err := s.userRepo.GetUserByID(ctx, userID)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get employee details")
+		}
+
+		if employee == nil {
+			// This should not happen, but let's handle it anyway
+			continue
+		}
+
+		// Skip non-employees (just to be safe)
+		if employee.Role != models.UserRoleEmployee {
+			continue
+		}
+
+		employeeSummaries = append(employeeSummaries, EmployeeSummary{
+			Employee:   *employee,
+			Statistics: stats,
+		})
+	}
+
+	return &GetEmployeeTaskSummaryResponse{
+		Employees: employeeSummaries,
+	}, nil
+}

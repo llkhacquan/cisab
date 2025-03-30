@@ -136,6 +136,23 @@ func (s *Server) GetAssignedTasksHandler(r *http.Request) (interface{}, error) {
 	return response, nil
 }
 
+// GetEmployeeTaskSummaryHandler handles GET requests to retrieve task statistics for all employees
+// curl -X GET http://localhost:8080/api/v1/employee-summary \
+// -H "Authorization: Bearer your_jwt_token"
+func (s *Server) GetEmployeeTaskSummaryHandler(r *http.Request) (interface{}, error) {
+	// Create an empty request
+	request := service.GetEmployeeTaskSummaryRequest{}
+
+	// Call the business logic
+	response, err := s.taskService.GetEmployeeTaskSummary(r.Context(), request)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get employee task summary")
+	}
+
+	// Return the response
+	return response, nil
+}
+
 // GetTasksHandler handles GET requests to retrieve tasks with filtering and sorting
 // curl -X GET http://localhost:8080/api/v1/tasks \
 // -H "Authorization: Bearer your_jwt_token" \

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/llkhacquan/knovel-assignment/pkg/models"
+	"github.com/llkhacquan/knovel-assignment/pkg/repo"
 )
 
 // TaskService defines the interface for task operations
@@ -20,6 +21,9 @@ type TaskService interface {
 
 	// GetTasks returns all tasks for an employer with filtering, sorting, and pagination
 	GetTasks(ctx context.Context, request GetTasksRequest) (*GetTasksResponse, error)
+
+	// GetEmployeeTaskSummary returns a summary of task statistics for each employee
+	GetEmployeeTaskSummary(ctx context.Context, request GetEmployeeTaskSummaryRequest) (*GetEmployeeTaskSummaryResponse, error)
 }
 
 // CreateTaskRequest represents the request to create a new task
@@ -87,4 +91,20 @@ type GetTasksRequest struct {
 type GetTasksResponse struct {
 	Tasks      []models.Task `json:"tasks"`
 	TotalCount int           `json:"total_count"` // Total number of tasks matching the filters (before pagination)
+}
+
+// EmployeeSummary represents task statistics for an employee
+type EmployeeSummary struct {
+	Employee   models.User         `json:"employee"`
+	Statistics repo.TaskStatistics `json:"statistics"`
+}
+
+// GetEmployeeTaskSummaryRequest represents the request for fetching employee task summaries
+type GetEmployeeTaskSummaryRequest struct {
+	// Currently empty, but can be extended in the future with filtering and pagination options
+}
+
+// GetEmployeeTaskSummaryResponse represents the response for fetching employee task summaries
+type GetEmployeeTaskSummaryResponse struct {
+	Employees []EmployeeSummary `json:"employees"`
 }

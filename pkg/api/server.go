@@ -102,6 +102,12 @@ func (s *Server) setupRoutes() {
 			Path:    "/tasks",
 			Handler: s.GetTasksHandler,
 		},
+		// Employee summary endpoint
+		{
+			Method:  http.MethodGet,
+			Path:    "/employee-summary",
+			Handler: s.GetEmployeeTaskSummaryHandler,
+		},
 	}
 
 	// Register all API endpoints
