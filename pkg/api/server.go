@@ -45,6 +45,12 @@ func (s *Server) setupRoutes() {
 	s.router.Use(LoggingMiddleware(s.logger))
 	s.router.Use(CorsMiddleware)
 
+	// Add a global OPTIONS handler for CORS preflight requests
+	s.router.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// The CORS middleware will set the necessary headers and return 200 OK
+		w.WriteHeader(http.StatusOK)
+	})
+
 	// Non-API endpoints (health check)
 	healthEndpoint := []Endpoint{
 		{
