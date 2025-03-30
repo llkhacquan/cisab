@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="sidebar" id="userSidebar">
+        <h2>User Management</h2>
+        <button id="createUserBtn">Create Random User</button>
+        <div id="userList">
+            <!-- User entries will be added here dynamically -->
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="authPanel" class="card">
+            <h2>Authentication</h2>
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword">
+                </div>
+                <button id="loginBtn">Login</button>
+            </div>
+            <div id="userInfo" class="hidden">
+                <div class="compact-user-info">
+                    <span><strong>Logged In:</strong> <span id="currentUserDetails"></span></span>
+                    <button id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="taskPanel" class="card hidden">
+            <!-- Task content will differ based on user role -->
+            <div id="employerPanel" class="hidden">
+                <h2>Employer Dashboard</h2>
+                <div style="margin-bottom: 15px;">
+                    <button id="showAddTaskBtn">Add Task</button>
+                </div>
+
+                <h3>Tasks</h3>
+                <div class="task-filters">
+                    <div class="form-group">
+                        <label for="taskStatusFilter">Filter by Status:</label>
+                        <select id="taskStatusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskAssigneeFilter">Filter by Assignee:</label>
+                        <select id="taskAssigneeFilter">
+                            <option value="">All Assignees</option>
+                            <!-- Employees will be populated here -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskSortBy">Sort By:</label>
+                        <select id="taskSortBy">
+                            <option value="created_at">Creation Date</option>
+                            <option value="updated_at">Update Date</option>
+                            <option value="due_date">Due Date</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskSortOrder">Sort Order:</label>
+                        <select id="taskSortOrder">
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="taskTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Assignee</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskTableBody">
+                            <!-- Tasks will be listed here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Employee Summary</h3>
+                <div id="employeeSummary">
+                    <!-- Employee summary will be displayed here -->
+                </div>
+            </div>
+
+            <div id="employeePanel" class="hidden">
+                <h2>Employee Dashboard</h2>
+                <h3>My Tasks</h3>
+                <div id="employeeTaskList">
+                    <!-- Assigned tasks will be listed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Creation Modal -->
+    <div id="taskModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Create Task</h3>
+            <div class="form-group">
+                <label for="taskTitle">Title:</label>
+                <input type="text" id="taskTitle">
+            </div>
+            <div class="form-group">
+                <label for="taskDescription">Description:</label>
+                <input type="text" id="taskDescription">
+            </div>
+            <div class="form-group">
+                <label for="taskDueDate">Due Date:</label>
+                <input type="datetime-local" id="taskDueDate">
+            </div>
+            <div class="form-group">
+                <label for="taskAssignee">Assignee:</label>
+                <select id="taskAssignee">
+                    <!-- Employees will be populated here -->
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button id="createTaskBtn">Create Task</button>
+                <button id="createRandomTaskBtn">Create Random Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/tasks.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
