@@ -8,9 +8,6 @@ import (
 
 // UserService defines the interface for user operations
 type UserService interface {
-	// GetUsers returns all users
-	GetUsers(ctx context.Context, request GetUsersRequest) (GetUsersResponse, error)
-
 	// GetUserByID returns a user by ID
 	GetUserByID(ctx context.Context, request GetUserByIDRequest) (*GetUserByIDResponse, error)
 
@@ -19,13 +16,6 @@ type UserService interface {
 
 	// GetJWTToken generates and returns a JWT token for authentication
 	GetJWTToken(ctx context.Context, request GetJWTRequest) (*GetJWTResponse, error)
-}
-
-type GetUsersRequest struct {
-	// no fields needed for this request
-}
-type GetUsersResponse struct {
-	Users []models.User `json:"users"`
 }
 
 type GetUserByIDRequest struct {
