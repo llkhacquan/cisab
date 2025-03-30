@@ -23,12 +23,22 @@ A simple HTTP REST API with middleware demonstration.
 
 ### Protected Endpoints (require JWT authentication)
 
+#### User Endpoints
 - `GET /api/v1/users/{id}` - Get a user by ID
 - `POST /api/v1/users` - Create a new user
-- `POST /api/v1/tasks` - Create a new task
 
-For detailed API documentation with request/response examples,
-see [API Documentation](docs/user_service.md).
+#### Task Endpoints (Employer Role)
+- `POST /api/v1/tasks` - Create a new task
+- `GET /api/v1/tasks` - Get all tasks with filtering and sorting
+- `GET /api/v1/employee-summary` - Get task statistics for all employees
+
+#### Task Endpoints (Employee Role)
+- `GET /api/v1/tasks/assigned` - Get tasks assigned to the employee
+- `PATCH /api/v1/tasks/{id}/status` - Update task status
+
+For detailed API documentation with request/response examples, see:
+- [User Service API Documentation](docs/user_service.md)
+- [Task Service API Documentation](docs/task_service.md)
 
 ## Getting Started
 
@@ -142,7 +152,30 @@ curl -X PATCH http://localhost:8080/api/v1/tasks/1/status \
   }'
 ```
 
-For more examples and detailed API documentation, see [API Documentation](docs/user_service.md).
+### Get tasks assigned to an employee (protected endpoint)
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/tasks/assigned?status=pending&sort_by=created_at&sort_order=desc" \
+  -H "Authorization: Bearer your-jwt-token"
+```
+
+### Get all tasks for an employer (protected endpoint)
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/tasks?status=pending&assignee_id=3&sort_by=due_date" \
+  -H "Authorization: Bearer your-jwt-token"
+```
+
+### Get employee task summary (protected endpoint)
+
+```bash
+curl -X GET http://localhost:8080/api/v1/employee-summary \
+  -H "Authorization: Bearer your-jwt-token"
+```
+
+For more examples and detailed API documentation, see:
+- [User Service API Documentation](docs/user_service.md)
+- [Task Service API Documentation](docs/task_service.md)
 
 ## Configuration
 
