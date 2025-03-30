@@ -130,3 +130,27 @@ func comparePasswords(hashedPassword, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
 	return err == nil
 }
+
+// GetUsers returns all users
+func (u *userService) GetUsers(ctx context.Context, request GetUsersRequest) (*GetUsersResponse, error) {
+	// Check authentication and authorization
+	authMD := authctx.Get(ctx)
+	if authMD.User.ID == 0 {
+		return nil, ErrUnauthorized
+	}
+
+	// Only employers can access this endpoint
+	if authMD.User.Role != models.UserRoleEmployer {
+		return nil, NewInvalidInputError("only employers can view all users")
+	}
+
+	// Get all users from repository
+	users, err := u.userRepo.GetAllUsers(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get users")
+	}
+
+	return &GetUsersResponse{
+		Users: users,
+	}, nil
+}

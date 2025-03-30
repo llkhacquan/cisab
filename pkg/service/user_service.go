@@ -19,6 +19,9 @@ type UserService interface {
 
 	// GetJWTToken generates and returns a JWT token for authentication
 	GetJWTToken(ctx context.Context, request GetJWTRequest) (*GetJWTResponse, error)
+
+	// GetUsers returns all users (only accessible by employers)
+	GetUsers(ctx context.Context, request GetUsersRequest) (*GetUsersResponse, error)
 }
 
 type GetUserByIDRequest struct {
@@ -53,4 +56,12 @@ type GetJWTResponse struct {
 	Token       string      `json:"token"`
 	User        models.User `json:"user"`
 	TokenExpiry int64       `json:"token_expiry"`
+}
+
+type GetUsersRequest struct {
+	// No filters needed for this simple implementation
+}
+
+type GetUsersResponse struct {
+	Users []models.User `json:"users"`
 }

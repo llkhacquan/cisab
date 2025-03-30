@@ -46,3 +46,11 @@ func (u userRepoImpl) GetUserByEmail(ctx context.Context, email string) (*models
 	}
 	return &user, nil
 }
+
+func (u userRepoImpl) GetAllUsers(ctx context.Context) ([]models.User, error) {
+	var users []models.User
+	if err := u.db(ctx).Table("users").Order("id asc").Scan(&users).Error; err != nil {
+		return nil, errors.Wrap(err, "failed to get all users")
+	}
+	return users, nil
+}

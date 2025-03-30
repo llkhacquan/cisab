@@ -84,6 +84,11 @@ func (s *Server) setupRoutes() {
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "/users/all",
+			Handler: s.GetUsersHandler,
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/users/{id}",
 			Handler: s.GetUserByIDHandler,
 		},

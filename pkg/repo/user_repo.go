@@ -14,4 +14,6 @@ type UserRepo interface {
 	// GetUserByEmail retrieves a user by their email, return nil if not found.
 	// This is useful for login or registration processes.
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	// GetAllUsers retrieves all users.
+	GetAllUsers(ctx context.Context) ([]models.User, error)
 }
