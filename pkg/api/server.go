@@ -79,6 +79,11 @@ func (s *Server) setupRoutes() {
 		// User endpoints
 		{
 			Method:  http.MethodGet,
+			Path:    "/users/me",
+			Handler: s.GetMeHandler,
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/users/{id}",
 			Handler: s.GetUserByIDHandler,
 		},

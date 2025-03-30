@@ -74,6 +74,20 @@ func (s *Server) CreateUserHandler(r *http.Request) (interface{}, error) {
 	return response, nil
 }
 
+// GetMeHandler handles GET requests to retrieve the authenticated user's profile
+// curl -X GET http://localhost:8080/api/v1/users/me \
+// -H "Authorization: Bearer {token}"
+func (s *Server) GetMeHandler(r *http.Request) (interface{}, error) {
+	// Call the business logic
+	response, err := s.userService.GetMe(r.Context())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get current user")
+	}
+
+	// Return the response
+	return response, nil
+}
+
 // LoginHandler handles POST requests to authenticate a user and generate a JWT token
 // curl -X POST http://localhost:8080/api/v1/login \
 // -H "Content-Type: application/json" \

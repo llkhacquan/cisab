@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/llkhacquan/knovel-assignment/pkg/authctx"
 	"github.com/llkhacquan/knovel-assignment/pkg/config"
 	"github.com/llkhacquan/knovel-assignment/pkg/models"
 	"github.com/llkhacquan/knovel-assignment/pkg/repo"
@@ -36,6 +37,16 @@ func (u *userService) GetUserByID(ctx context.Context, request GetUserByIDReques
 	}
 	return &GetUserByIDResponse{
 		User: user,
+	}, nil
+}
+
+func (u *userService) GetMe(ctx context.Context) (*GetMeResponse, error) {
+	authMD := authctx.Get(ctx)
+	if authMD.User.ID == 0 {
+		return nil, ErrUnauthorized
+	}
+	return &GetMeResponse{
+		User: &authMD.User,
 	}, nil
 }
 

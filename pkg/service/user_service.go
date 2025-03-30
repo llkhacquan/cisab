@@ -11,6 +11,9 @@ type UserService interface {
 	// GetUserByID returns a user by ID
 	GetUserByID(ctx context.Context, request GetUserByIDRequest) (*GetUserByIDResponse, error)
 
+	// GetMe returns the current authenticated user
+	GetMe(ctx context.Context) (*GetMeResponse, error)
+
 	// CreateUser creates a new user
 	CreateUser(ctx context.Context, request CreateUserRequest) (*CreateUserResponse, error)
 
@@ -23,6 +26,10 @@ type GetUserByIDRequest struct {
 }
 
 type GetUserByIDResponse struct {
+	User *models.User `json:"user"`
+}
+
+type GetMeResponse struct {
 	User *models.User `json:"user"`
 }
 
