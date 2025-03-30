@@ -174,11 +174,6 @@ func (s *taskService) GetAssignedTasks(ctx context.Context, request GetAssignedT
 	if request.SortBy != "" {
 		orderBy := request.SortBy
 
-		// Validate sort field
-		if orderBy != "created_at" && orderBy != "updated_at" {
-			return nil, NewInvalidInputError("sort_by must be 'created_at' or 'updated_at'")
-		}
-
 		// Add sort order
 		if request.SortOrder != "" {
 			if request.SortOrder != "asc" && request.SortOrder != "desc" {
