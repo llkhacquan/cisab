@@ -17,6 +17,9 @@ type TaskService interface {
 
 	// GetAssignedTasks returns tasks assigned to the authenticated employee with filtering and pagination
 	GetAssignedTasks(ctx context.Context, request GetAssignedTasksRequest) (*GetAssignedTasksResponse, error)
+
+	// GetTasks returns all tasks for an employer with filtering, sorting, and pagination
+	GetTasks(ctx context.Context, request GetTasksRequest) (*GetTasksResponse, error)
 }
 
 // CreateTaskRequest represents the request to create a new task
@@ -61,6 +64,27 @@ type GetAssignedTasksRequest struct {
 
 // GetAssignedTasksResponse represents the response for fetching assigned tasks
 type GetAssignedTasksResponse struct {
+	Tasks      []models.Task `json:"tasks"`
+	TotalCount int           `json:"total_count"` // Total number of tasks matching the filters (before pagination)
+}
+
+// GetTasksRequest represents the request for fetching tasks (for employers)
+type GetTasksRequest struct {
+	// Filtering
+	Status     models.TaskStatus `json:"status,omitempty"`      // Filter by specific status
+	AssigneeID *models.UserID    `json:"assignee_id,omitempty"` // Filter by assignee
+
+	// Sorting
+	SortBy    string `json:"sort_by,omitempty"`    // Field to sort by: "created_at", "updated_at", "due_date", or "status"
+	SortOrder string `json:"sort_order,omitempty"` // Sort order: "asc" or "desc"
+
+	// Pagination
+	Limit  int `json:"limit,omitempty"`  // Number of records to return
+	Offset int `json:"offset,omitempty"` // Number of records to skip
+}
+
+// GetTasksResponse represents the response for fetching tasks
+type GetTasksResponse struct {
 	Tasks      []models.Task `json:"tasks"`
 	TotalCount int           `json:"total_count"` // Total number of tasks matching the filters (before pagination)
 }

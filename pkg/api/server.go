@@ -97,6 +97,11 @@ func (s *Server) setupRoutes() {
 			Path:    "/tasks/assigned",
 			Handler: s.GetAssignedTasksHandler,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/tasks",
+			Handler: s.GetTasksHandler,
+		},
 	}
 
 	// Register all API endpoints

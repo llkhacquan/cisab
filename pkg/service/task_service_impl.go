@@ -207,3 +207,87 @@ func (s *taskService) GetAssignedTasks(ctx context.Context, request GetAssignedT
 		TotalCount: totalCount,
 	}, nil
 }
+
+// GetTasks returns all tasks for an employer with filtering, sorting, and pagination
+func (s *taskService) GetTasks(ctx context.Context, request GetTasksRequest) (*GetTasksResponse, error) {
+	// Check authentication
+	authMD := authctx.Get(ctx)
+	if authMD.User.ID == 0 {
+		return nil, ErrUnauthorized
+	}
+
+	// Only employers can access this endpoint
+	if authMD.User.Role != models.UserRoleEmployer {
+		return nil, NewInvalidInputError("only employers can view all tasks")
+	}
+
+	// Build query options
+	options := repo.GetTasksOptions{
+		EmployerID: authMD.User.ID, // Only show tasks created by this employer
+		Offset:     request.Offset,
+		Limit:      request.Limit,
+	}
+
+	// Add status filter if provided
+	if request.Status != "" {
+		options.Status = request.Status
+	}
+
+	// Add assignee filter if provided
+	if request.AssigneeID != nil {
+		options.AssigneeID = *request.AssigneeID
+
+		// Verify the assignee exists
+		assignee, err := s.userRepo.GetUserByID(ctx, options.AssigneeID)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to verify assignee")
+		}
+		if assignee == nil {
+			return nil, NewInvalidInputError("assignee not found")
+		}
+	}
+
+	// Add sorting options
+	if request.SortBy != "" {
+		orderBy := request.SortBy
+
+		// Validate sort field
+		validSortFields := map[string]bool{
+			"created_at": true,
+			"updated_at": true,
+			"due_date":   true,
+			"status":     true,
+		}
+
+		if !validSortFields[orderBy] {
+			return nil, NewInvalidInputError("sort_by must be one of: created_at, updated_at, due_date, status")
+		}
+
+		// Add sort order
+		if request.SortOrder != "" {
+			if request.SortOrder != "asc" && request.SortOrder != "desc" {
+				return nil, NewInvalidInputError("sort_order must be 'asc' or 'desc'")
+			}
+			orderBy += " " + request.SortOrder
+		} else {
+			// Default to descending order
+			orderBy += " DESC"
+		}
+
+		options.OrderBy = []string{orderBy}
+	} else {
+		// Default sort order: created_at descending (newest first)
+		options.OrderBy = []string{"created_at DESC"}
+	}
+
+	// Get tasks from repository
+	totalCount, tasks, err := s.taskRepo.GetTasks(ctx, options)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get tasks")
+	}
+
+	return &GetTasksResponse{
+		Tasks:      tasks,
+		TotalCount: totalCount,
+	}, nil
+}
