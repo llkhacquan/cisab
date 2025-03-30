@@ -33,6 +33,13 @@ body {
   background-color: #e0e0ff;
 }
 
+.user-id {
+  font-size: 12px;
+  color: #666;
+  display: inline-block;
+  margin-top: 4px;
+}
+
 .card {
   background-color: #fff;
   border-radius: 4px;
@@ -116,12 +123,38 @@ table tr:hover {
 
 .task-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 5px;
 }
 
 .task-actions button {
   padding: 4px 8px;
   font-size: 12px;
+}
+
+.task-status-btn[data-status="pending"] {
+  background-color: #f1c40f;
+  color: #000;
+}
+
+.task-status-btn[data-status="in_progress"] {
+  background-color: #3498db;
+}
+
+.task-status-btn[data-status="completed"] {
+  background-color: #2ecc71;
+}
+
+/* Make table actions fit better */
+table .task-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+table .task-actions button {
+  width: 100%;
+  margin-bottom: 2px;
 }
 
 /* Modal Styles */
@@ -152,7 +185,7 @@ table tr:hover {
   position: relative;
 }
 
-.close-modal {
+.close-modal, .close-modal-assign {
   position: absolute;
   top: 10px;
   right: 15px;
@@ -161,7 +194,7 @@ table tr:hover {
   cursor: pointer;
 }
 
-.close-modal:hover {
+.close-modal:hover, .close-modal-assign:hover {
   color: #555;
 }
 

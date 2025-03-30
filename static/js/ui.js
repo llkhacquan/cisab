@@ -52,6 +52,8 @@ const ui = {
 
         employerTaskList: document.getElementById('employerTaskList'),
         employeeTaskList: document.getElementById('employeeTaskList'),
+        employeeTaskTable: document.getElementById('employeeTaskTable'),
+        employeeTaskTableBody: document.getElementById('employeeTaskTableBody'),
         employeeSummary: document.getElementById('employeeSummary')
     },
 
@@ -92,7 +94,7 @@ const ui = {
         } else if (user.role === 'employee') {
             ui.elements.employerPanel.classList.add('hidden');
             ui.elements.employeePanel.classList.remove('hidden');
-            ui.loadEmployeeData();
+            ui.loadEmployeeAssignedTasks();
         }
     },
 
@@ -106,7 +108,8 @@ const ui = {
             userEntry.className = 'user-entry';
             userEntry.innerHTML = `
                 <strong>${user.name}</strong><br>
-                ${user.email} (${user.role})
+                ${user.email} (${user.role})<br>
+                <span class="user-id">ID: ${user.id || 'N/A'}</span>
             `;
 
             // Add click event to log in as this user
@@ -237,11 +240,17 @@ const ui = {
         }
     },
 
-    // Load data for employee dashboard
-    loadEmployeeData: async () => {
+    // Load tasks assigned to the current employee (for employee dashboard)
+    loadEmployeeAssignedTasks: async () => {
+        console.log('Loading assigned tasks for employee');
         const taskResult = await tasks.getAssignedTasks();
+        console.log('Assigned tasks result:', taskResult);
         if (taskResult && taskResult.status === 'success') {
+            console.log('Tasks assigned to employee:', taskResult.data.tasks);
             ui.updateEmployeeTaskList(taskResult.data.tasks);
+        } else {
+            console.error('Failed to load assigned tasks:', taskResult);
+            ui.elements.employeeTaskList.innerHTML = '<p>Error loading tasks. Please try again.</p>';
         }
     },
 
@@ -350,11 +359,19 @@ const ui = {
                 assigneeName = `Employee ID: ${task.assignee_id}`;
             }
 
+            // Format status
+            let formattedStatus = task.status;
+            switch (task.status) {
+                case 'pending': formattedStatus = 'Pending'; break;
+                case 'in_progress': formattedStatus = 'In Progress'; break;
+                case 'completed': formattedStatus = 'Completed'; break;
+            }
+
             row.innerHTML = `
                 <td>${task.id}</td>
                 <td>${task.title}</td>
                 <td>${task.description || 'No description'}</td>
-                <td>${tasks.formatStatus(task.status)}</td>
+                <td>${formattedStatus}</td>
                 <td>${dueDate}</td>
                 <td>${assigneeName}</td>
                 <td>
@@ -421,10 +438,16 @@ const ui = {
                 dueDate = new Date(task.due_date).toLocaleString();
             }
 
+            // Format status directly
+            let formattedStatus = task.status;
+            if (task.status === 'pending') formattedStatus = 'Pending';
+            else if (task.status === 'in_progress') formattedStatus = 'In Progress';
+            else if (task.status === 'completed') formattedStatus = 'Completed';
+            
             taskCard.innerHTML = `
                 <h4>${task.title}</h4>
                 <p>${task.description || 'No description'}</p>
-                <p><strong>Status:</strong> ${tasks.formatStatus(task.status)}</p>
+                <p><strong>Status:</strong> ${formattedStatus}</p>
                 <p><strong>Due Date:</strong> ${dueDate}</p>
                 <p><strong>Assignee ID:</strong> ${task.assignee_id || 'Unassigned'}</p>
                 <div class="task-actions">
@@ -451,18 +474,20 @@ const ui = {
         });
     },
 
-    // Update the task list for employees
-    updateEmployeeTaskList: (tasks) => {
-        ui.elements.employeeTaskList.innerHTML = '';
+    // Update the task list for employees using a table layout
+    updateEmployeeTaskList: (tasksList) => {
+        console.log('Updating employee task list with tasks:', tasksList);
+        const tableBody = ui.elements.employeeTaskTableBody;
+        tableBody.innerHTML = '';
 
-        if (!tasks || tasks.length === 0) {
-            ui.elements.employeeTaskList.innerHTML = '<p>No tasks assigned to you.</p>';
+        if (!tasksList || !Array.isArray(tasksList) || tasksList.length === 0) {
+            console.log('No tasks assigned to employee');
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No tasks assigned to you.</td></tr>';
             return;
         }
 
-        tasks.forEach(task => {
-            const taskCard = document.createElement('div');
-            taskCard.className = 'card';
+        tasksList.forEach(task => {
+            const row = document.createElement('tr');
 
             // Format the due date if available
             let dueDate = 'Not set';
@@ -470,19 +495,28 @@ const ui = {
                 dueDate = new Date(task.due_date).toLocaleString();
             }
 
-            taskCard.innerHTML = `
-                <h4>${task.title}</h4>
-                <p>${task.description || 'No description'}</p>
-                <p><strong>Status:</strong> ${tasks.formatStatus(task.status)}</p>
-                <p><strong>Due Date:</strong> ${dueDate}</p>
-                <div class="task-actions">
-                    <button class="task-status-btn" data-task-id="${task.id}" data-status="pending">Set Pending</button>
-                    <button class="task-status-btn" data-task-id="${task.id}" data-status="in_progress">Set In Progress</button>
-                    <button class="task-status-btn" data-task-id="${task.id}" data-status="completed">Set Completed</button>
-                </div>
+            // Format the status properly without relying on external function
+            let formattedStatus = task.status;
+            if (task.status === 'pending') formattedStatus = 'Pending';
+            else if (task.status === 'in_progress') formattedStatus = 'In Progress';
+            else if (task.status === 'completed') formattedStatus = 'Completed';
+
+            row.innerHTML = `
+                <td>${task.id}</td>
+                <td>${task.title}</td>
+                <td>${task.description || 'No description'}</td>
+                <td>${formattedStatus}</td>
+                <td>${dueDate}</td>
+                <td>
+                    <div class="task-actions">
+                        <button class="task-status-btn" data-task-id="${task.id}" data-status="pending">Set Pending</button>
+                        <button class="task-status-btn" data-task-id="${task.id}" data-status="in_progress">Set In Progress</button>
+                        <button class="task-status-btn" data-task-id="${task.id}" data-status="completed">Set Completed</button>
+                    </div>
+                </td>
             `;
 
-            ui.elements.employeeTaskList.appendChild(taskCard);
+            tableBody.appendChild(row);
         });
 
         // Add event listeners to status buttons
@@ -493,7 +527,7 @@ const ui = {
 
                 const result = await tasks.updateTaskStatus(taskId, status);
                 if (result && result.status === 'success') {
-                    ui.loadEmployeeData(); // Reload the tasks
+                    ui.loadEmployeeAssignedTasks(); // Reload the assigned tasks
                 }
             });
         });

@@ -75,9 +75,18 @@ const tasks = {
     // Get tasks assigned to the current user (for employees)
     getAssignedTasks: async (params = {}) => {
         const token = auth.getToken();
-        if (!token) return null;
+        if (!token) {
+            console.error('No authentication token available for getting assigned tasks');
+            return {
+                status: 'error',
+                error: { message: 'Authentication required. Please log in.' },
+                data: { tasks: [] }
+            };
+        }
 
-        return await api.getAssignedTasks(token, params);
+        const response = await api.getAssignedTasks(token, params);
+        console.log('API response for assigned tasks:', response);
+        return response;
     },
 
     // Get all tasks created by the current user (for employers)

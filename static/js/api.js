@@ -103,12 +103,17 @@ const api = {
         try {
             const queryParams = new URLSearchParams(params).toString();
             const url = `${API_BASE_URL}/tasks/assigned${queryParams ? `?${queryParams}` : ''}`;
+            console.log('Fetching assigned tasks from URL:', url);
+
             const response = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            return await response.json();
+
+            const data = await response.json();
+            console.log('Assigned tasks API raw response data:', data);
+            return data;
         } catch (error) {
             console.error('Error getting assigned tasks:', error);
             return { status: 'error', error: { message: error.message } };

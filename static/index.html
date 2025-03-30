@@ -109,8 +109,25 @@
             <div id="employeePanel" class="hidden">
                 <h2>Employee Dashboard</h2>
                 <h3>My Tasks</h3>
-                <div id="employeeTaskList">
-                    <!-- Assigned tasks will be listed here -->
+                <div class="table-container">
+                    <table id="employeeTaskTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeTaskTableBody">
+                            <!-- Assigned tasks will be listed here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="employeeTaskList" class="hidden">
+                    <!-- Legacy container, kept for backward compatibility -->
                 </div>
             </div>
         </div>
