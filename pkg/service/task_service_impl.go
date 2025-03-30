@@ -122,14 +122,12 @@ func (s *taskService) UpdateTaskStatus(ctx context.Context, request UpdateTaskSt
 	}
 
 	// Update the task status
-	updated, err := s.taskRepo.UpdateTaskStatus(ctx, task.ID, request.Status)
+	_, err = s.taskRepo.UpdateTaskStatus(ctx, task.ID, request.Status)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update task status")
 	}
 
-	_ = updated
-	// okay, we can return error here, or we can just return the task, nothing changed
-	// let's return the task here
+	// Note: We're ignoring the 'updated' boolean return value since we always fetch the task afterward
 
 	// Retrieve the updated task
 	updatedTask, err := s.taskRepo.GetTaskByID(ctx, task.ID)
@@ -139,5 +137,73 @@ func (s *taskService) UpdateTaskStatus(ctx context.Context, request UpdateTaskSt
 
 	return &UpdateTaskStatusResponse{
 		Task: *updatedTask,
+	}, nil
+}
+
+// GetAssignedTasks returns tasks assigned to the authenticated employee with filtering and pagination
+func (s *taskService) GetAssignedTasks(ctx context.Context, request GetAssignedTasksRequest) (*GetAssignedTasksResponse, error) {
+	// Check authentication
+	authMD := authctx.Get(ctx)
+	if authMD.User.ID == 0 {
+		return nil, ErrUnauthorized
+	}
+
+	// Employee can only view their assigned tasks
+	if authMD.User.Role != models.UserRoleEmployee {
+		return nil, NewInvalidInputError("only employees can view their assigned tasks")
+	}
+
+	// Build query options
+	options := repo.GetTasksOptions{
+		AssigneeID: authMD.User.ID,
+		Offset:     request.Offset,
+		Limit:      request.Limit,
+	}
+
+	// Add status filter if provided
+	if len(request.Statuses) > 0 {
+		// Note: The current repo implementation only supports filtering by a single status,
+		// so we're using the first status in the list
+		options.Status = request.Statuses[0]
+	} else if request.Status != "" {
+		// For backward compatibility
+		options.Status = request.Status
+	}
+
+	// Add sorting options
+	if request.SortBy != "" {
+		orderBy := request.SortBy
+
+		// Validate sort field
+		if orderBy != "created_at" && orderBy != "updated_at" {
+			return nil, NewInvalidInputError("sort_by must be 'created_at' or 'updated_at'")
+		}
+
+		// Add sort order
+		if request.SortOrder != "" {
+			if request.SortOrder != "asc" && request.SortOrder != "desc" {
+				return nil, NewInvalidInputError("sort_order must be 'asc' or 'desc'")
+			}
+			orderBy += " " + request.SortOrder
+		} else {
+			// Default to descending order
+			orderBy += " DESC"
+		}
+
+		options.OrderBy = []string{orderBy}
+	} else {
+		// Default sort order: created_at descending (newest first)
+		options.OrderBy = []string{"created_at DESC"}
+	}
+
+	// Get tasks from repository
+	totalCount, tasks, err := s.taskRepo.GetTasks(ctx, options)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get assigned tasks")
+	}
+
+	return &GetAssignedTasksResponse{
+		Tasks:      tasks,
+		TotalCount: totalCount,
 	}, nil
 }

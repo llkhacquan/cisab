@@ -88,3 +88,50 @@ func (s *Server) UpdateTaskStatusHandler(r *http.Request) (interface{}, error) {
 	// 5. Return the response
 	return response, nil
 }
+
+// GetAssignedTasksHandler handles GET requests to retrieve tasks assigned to the authenticated employee
+// curl -X GET http://localhost:8080/api/v1/tasks/assigned \
+// -H "Authorization: Bearer your_jwt_token" \
+// "?status=pending&sort_by=created_at&sort_order=desc&limit=10&offset=0"
+func (s *Server) GetAssignedTasksHandler(r *http.Request) (interface{}, error) {
+	// Parse query parameters
+	query := r.URL.Query()
+
+	// Build the request
+	request := service.GetAssignedTasksRequest{}
+
+	// Parse statuses filter
+	if statusStr := query.Get("status"); statusStr != "" {
+		request.Statuses = []models.TaskStatus{models.TaskStatus(statusStr)}
+	}
+
+	// Parse sorting options
+	request.SortBy = query.Get("sort_by")
+	request.SortOrder = query.Get("sort_order")
+
+	// Parse pagination options
+	if limitStr := query.Get("limit"); limitStr != "" {
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			return nil, errors.Wrap(err, "invalid limit parameter")
+		}
+		request.Limit = limit
+	}
+
+	if offsetStr := query.Get("offset"); offsetStr != "" {
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			return nil, errors.Wrap(err, "invalid offset parameter")
+		}
+		request.Offset = offset
+	}
+
+	// Call the business logic
+	response, err := s.taskService.GetAssignedTasks(r.Context(), request)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get assigned tasks")
+	}
+
+	// Return the response
+	return response, nil
+}

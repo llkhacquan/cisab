@@ -78,6 +78,10 @@ func (r *taskRepoImpl) GetTasks(ctx context.Context, options GetTasksOptions) (i
 		db = db.Where("employer_id = ?", options.EmployerID)
 	}
 
+	if options.AssigneeID != 0 {
+		db = db.Where("assignee_id = ?", options.AssigneeID)
+	}
+
 	// Count total results (before pagination)
 	var totalCount int64
 	if err := db.Model(&models.Task{}).Count(&totalCount).Error; err != nil {

@@ -29,6 +29,7 @@ type GetTasksOptions struct {
 	// Filter by status
 	Status     models.TaskStatus // if not set, all statuses are included
 	EmployerID models.UserID     // if not set, all employers are included
+	AssigneeID models.UserID     // if not set, all assignees are included
 
 	// this is sql-like syntax, it might not be supported by all databases,
 	// but for the sake of this assignment, we'll assume it's supported.
