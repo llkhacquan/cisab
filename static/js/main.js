@@ -161,4 +161,39 @@ function setupEventListeners() {
     ui.elements.taskAssigneeFilter.addEventListener('change', () => ui.loadTaskTable());
     ui.elements.taskSortBy.addEventListener('change', () => ui.loadTaskTable());
     ui.elements.taskSortOrder.addEventListener('change', () => ui.loadTaskTable());
+
+    // Close assign task modal button
+    ui.elements.closeAssignModalBtn.addEventListener('click', () => {
+        ui.closeAssignTaskModal();
+    });
+
+    // Close modal when clicking outside
+    ui.elements.assignTaskModal.addEventListener('click', (event) => {
+        if (event.target === ui.elements.assignTaskModal) {
+            ui.closeAssignTaskModal();
+        }
+    });
+
+    // Confirm assign task button
+    ui.elements.confirmAssignTaskBtn.addEventListener('click', async () => {
+        const taskId = ui.elements.assignTaskId.value;
+        const assigneeId = ui.elements.assignTaskAssignee.value;
+
+        if (!assigneeId) {
+            alert('Please select an employee to assign the task to.');
+            return;
+        }
+
+        const result = await tasks.assignTask(taskId, parseInt(assigneeId));
+
+        if (result && result.status === 'success') {
+            // Close the modal
+            ui.closeAssignTaskModal();
+
+            // Reload the task list to see the updated assignment
+            ui.loadTaskTable();
+        } else {
+            alert('Failed to assign task: ' + (result?.error?.message || 'Unknown error'));
+        }
+    });
 }

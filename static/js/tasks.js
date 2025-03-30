@@ -56,6 +56,22 @@ const tasks = {
         return await api.updateTaskStatus(taskId, status, token);
     },
 
+    // Assign a task to an employee
+    assignTask: async (taskId, assigneeId) => {
+        const token = auth.getToken();
+        if (!token) return null;
+
+        return await api.assignTask(taskId, assigneeId, token);
+    },
+
+    // Get all users from the server
+    getAllUsers: async () => {
+        const token = auth.getToken();
+        if (!token) return null;
+
+        return await api.getAllUsers(token);
+    },
+
     // Get tasks assigned to the current user (for employees)
     getAssignedTasks: async (params = {}) => {
         const token = auth.getToken();

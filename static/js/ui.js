@@ -42,6 +42,14 @@ const ui = {
         taskSortBy: document.getElementById('taskSortBy'),
         taskSortOrder: document.getElementById('taskSortOrder'),
 
+        // Task assignment modal elements
+        assignTaskModal: document.getElementById('assignTaskModal'),
+        closeAssignModalBtn: document.querySelector('.close-modal-assign'),
+        assignTaskTitle: document.getElementById('assignTaskTitle'),
+        assignTaskId: document.getElementById('assignTaskId'),
+        assignTaskAssignee: document.getElementById('assignTaskAssignee'),
+        confirmAssignTaskBtn: document.getElementById('confirmAssignTaskBtn'),
+
         employerTaskList: document.getElementById('employerTaskList'),
         employeeTaskList: document.getElementById('employeeTaskList'),
         employeeSummary: document.getElementById('employeeSummary')
@@ -184,8 +192,18 @@ const ui = {
             const employeeSummary = await tasks.getEmployeeSummary();
             if (employeeSummary && employeeSummary.status === 'success') {
                 ui.updateEmployeeSummary(employeeSummary.data.employees);
-                ui.updateAssigneeDropdown(employeeSummary.data.employees);
-                ui.updateAssigneeFilterDropdown(employeeSummary.data.employees);
+
+                // Use the getAllUsers API to get a complete list of users
+                const allUsers = await tasks.getAllUsers();
+                if (allUsers && allUsers.status === 'success' && allUsers.data.users) {
+                    // Use the complete user list for the dropdowns
+                    ui.updateAssigneeDropdown(allUsers.data.users);
+                    ui.updateAssigneeFilterDropdown(allUsers.data.users);
+                } else {
+                    // Fallback to employee summary if the getAllUsers API fails
+                    ui.updateAssigneeDropdown(employeeSummary.data.employees);
+                    ui.updateAssigneeFilterDropdown(employeeSummary.data.employees);
+                }
             }
         }
     },
@@ -194,15 +212,29 @@ const ui = {
     updateAssigneeFilterDropdown: (employees) => {
         ui.elements.taskAssigneeFilter.innerHTML = '<option value="">All Assignees</option>';
 
-        employees.forEach(employeeData => {
-            const employee = employeeData.employee;
-            if (employee.role === 'employee') {
-                const option = document.createElement('option');
-                option.value = employee.id;
-                option.textContent = `${employee.name}`;
-                ui.elements.taskAssigneeFilter.appendChild(option);
-            }
-        });
+        // Check if we're using employee summary format or users/all format
+        if (employees[0] && employees[0].employee) {
+            // Using employee summary format
+            employees.forEach(employeeData => {
+                const employee = employeeData.employee;
+                if (employee.role === 'employee') {
+                    const option = document.createElement('option');
+                    option.value = employee.id;
+                    option.textContent = `${employee.name}`;
+                    ui.elements.taskAssigneeFilter.appendChild(option);
+                }
+            });
+        } else {
+            // Using users/all format
+            employees.forEach(user => {
+                if (user.role === 'employee') {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.name}`;
+                    ui.elements.taskAssigneeFilter.appendChild(option);
+                }
+            });
+        }
     },
 
     // Load data for employee dashboard
@@ -216,16 +248,46 @@ const ui = {
     // Update the assignee dropdown with employees
     updateAssigneeDropdown: (employees) => {
         ui.elements.taskAssignee.innerHTML = '<option value="">Select Employee</option>';
+        // Also update the assignment modal dropdown
+        ui.elements.assignTaskAssignee.innerHTML = '<option value="">Select Employee</option>';
 
-        employees.forEach(employeeData => {
-            const employee = employeeData.employee;
-            if (employee.role === 'employee') {
-                const option = document.createElement('option');
-                option.value = employee.id;
-                option.textContent = `${employee.name} (${employee.email})`;
-                ui.elements.taskAssignee.appendChild(option);
-            }
-        });
+        // Check if we're using employee summary format or users/all format
+        if (employees[0] && employees[0].employee) {
+            // Using employee summary format
+            employees.forEach(employeeData => {
+                const employee = employeeData.employee;
+                if (employee.role === 'employee') {
+                    // Add to task creation dropdown
+                    const option = document.createElement('option');
+                    option.value = employee.id;
+                    option.textContent = `${employee.name} (${employee.email})`;
+                    ui.elements.taskAssignee.appendChild(option);
+
+                    // Add to task assignment dropdown
+                    const assignOption = document.createElement('option');
+                    assignOption.value = employee.id;
+                    assignOption.textContent = `${employee.name} (${employee.email})`;
+                    ui.elements.assignTaskAssignee.appendChild(assignOption);
+                }
+            });
+        } else {
+            // Using users/all format
+            employees.forEach(user => {
+                if (user.role === 'employee') {
+                    // Add to task creation dropdown
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.name} (${user.email})`;
+                    ui.elements.taskAssignee.appendChild(option);
+
+                    // Add to task assignment dropdown
+                    const assignOption = document.createElement('option');
+                    assignOption.value = user.id;
+                    assignOption.textContent = `${user.name} (${user.email})`;
+                    ui.elements.assignTaskAssignee.appendChild(assignOption);
+                }
+            });
+        }
     },
 
     // Update employee summary for employer dashboard
@@ -295,10 +357,47 @@ const ui = {
                 <td>${tasks.formatStatus(task.status)}</td>
                 <td>${dueDate}</td>
                 <td>${assigneeName}</td>
+                <td>
+                    <button class="assign-task-btn" data-task-id="${task.id}" data-task-title="${task.title}">Assign</button>
+                </td>
             `;
 
             tableBody.appendChild(row);
         });
+
+        // Add event listeners to assign buttons
+        document.querySelectorAll('.assign-task-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const taskId = e.target.getAttribute('data-task-id');
+                const taskTitle = e.target.getAttribute('data-task-title');
+                await ui.showAssignTaskModal(taskId, taskTitle);
+            });
+        });
+    },
+
+    // Show the assign task modal
+    showAssignTaskModal: async (taskId, taskTitle) => {
+        // Set the task ID and title in the modal
+        ui.elements.assignTaskId.value = taskId;
+        ui.elements.assignTaskTitle.textContent = taskTitle;
+
+        // Show the modal
+        ui.elements.assignTaskModal.classList.remove('hidden');
+        ui.elements.assignTaskModal.classList.add('active');
+
+        // If the dropdown is empty, load users directly from API
+        if (ui.elements.assignTaskAssignee.options.length <= 1) {
+            const usersResult = await tasks.getAllUsers();
+            if (usersResult && usersResult.status === 'success') {
+                ui.updateAssigneeDropdown(usersResult.data.users);
+            }
+        }
+    },
+
+    // Close the assign task modal
+    closeAssignTaskModal: () => {
+        ui.elements.assignTaskModal.classList.remove('active');
+        ui.elements.assignTaskModal.classList.add('hidden');
     },
 
     // Update the task list for employers (legacy method, replaced by table)

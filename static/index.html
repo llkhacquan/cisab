@@ -91,6 +91,7 @@
                                 <th>Status</th>
                                 <th>Due Date</th>
                                 <th>Assignee</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="taskTableBody">
@@ -142,6 +143,23 @@
                 <button id="createTaskBtn">Create Task</button>
                 <button id="createRandomTaskBtn">Create Random Task</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Assign Task Modal -->
+    <div id="assignTaskModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal-assign">&times;</span>
+            <h3>Assign Task</h3>
+            <p>Task: <span id="assignTaskTitle"></span></p>
+            <input type="hidden" id="assignTaskId">
+            <div class="form-group">
+                <label for="assignTaskAssignee">Assignee:</label>
+                <select id="assignTaskAssignee">
+                    <!-- Employees will be populated here -->
+                </select>
+            </div>
+            <button id="confirmAssignTaskBtn">Assign Task</button>
         </div>
     </div>
 

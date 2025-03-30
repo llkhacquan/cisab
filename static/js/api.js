@@ -143,5 +143,38 @@ const api = {
             console.error('Error getting employee summary:', error);
             return { status: 'error', error: { message: error.message } };
         }
+    },
+
+    // Assign task to an employee
+    assignTask: async (taskId, assigneeId, token) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/assign`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ assignee_id: assigneeId })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error assigning task:', error);
+            return { status: 'error', error: { message: error.message } };
+        }
+    },
+
+    // Get all users (for task assignment dropdown)
+    getAllUsers: async (token) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/all`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error getting all users:', error);
+            return { status: 'error', error: { message: error.message } };
+        }
     }
 };
