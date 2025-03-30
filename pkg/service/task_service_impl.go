@@ -223,9 +223,8 @@ func (s *taskService) GetTasks(ctx context.Context, request GetTasksRequest) (*G
 
 	// Build query options
 	options := repo.GetTasksOptions{
-		EmployerID: authMD.User.ID, // Only show tasks created by this employer
-		Offset:     request.Offset,
-		Limit:      request.Limit,
+		Offset: request.Offset,
+		Limit:  request.Limit,
 	}
 
 	// Add status filter if provided
