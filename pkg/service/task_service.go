@@ -16,6 +16,9 @@ type TaskService interface {
 	// UpdateTaskStatus updates the status of a task
 	UpdateTaskStatus(ctx context.Context, request UpdateTaskStatusRequest) (*UpdateTaskStatusResponse, error)
 
+	// AssignTask assigns a task to an employee
+	AssignTask(ctx context.Context, request AssignTaskRequest) (*AssignTaskResponse, error)
+
 	// GetAssignedTasks returns tasks assigned to the authenticated employee with filtering and pagination
 	GetAssignedTasks(ctx context.Context, request GetAssignedTasksRequest) (*GetAssignedTasksResponse, error)
 
@@ -48,6 +51,17 @@ type UpdateTaskStatusRequest struct {
 
 // UpdateTaskStatusResponse represents the response after updating a task's status
 type UpdateTaskStatusResponse struct {
+	Task models.Task `json:"task"`
+}
+
+// AssignTaskRequest represents the request to assign a task to an employee
+type AssignTaskRequest struct {
+	TaskID     models.TaskID `json:"task_id"`
+	AssigneeID models.UserID `json:"assignee_id" binding:"required"`
+}
+
+// AssignTaskResponse represents the response after assigning a task
+type AssignTaskResponse struct {
 	Task models.Task `json:"task"`
 }
 

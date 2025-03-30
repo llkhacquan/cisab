@@ -292,6 +292,62 @@ func (s *taskService) GetTasks(ctx context.Context, request GetTasksRequest) (*G
 	}, nil
 }
 
+// AssignTask assigns a task to an employee
+func (s *taskService) AssignTask(ctx context.Context, request AssignTaskRequest) (*AssignTaskResponse, error) {
+	// Check authentication
+	authMD := authctx.Get(ctx)
+	if authMD.User.ID == 0 {
+		return nil, ErrUnauthorized
+	}
+
+	// Only employers can assign tasks
+	if authMD.User.Role != models.UserRoleEmployer {
+		return nil, NewInvalidInputError("only employers can assign tasks")
+	}
+
+	// Get the task
+	task, err := s.taskRepo.GetTaskByID(ctx, request.TaskID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get task")
+	}
+
+	if task == nil {
+		return nil, ErrNotFound
+	}
+
+	// In this implementation, we allow any employer to assign any task
+
+	// Check if the assignee exists and is an employee
+	assignee, err := s.userRepo.GetUserByID(ctx, request.AssigneeID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get assignee")
+	}
+	if assignee == nil {
+		return nil, NewInvalidInputError("assignee not found")
+	}
+
+	// Verify the assignee is an employee
+	if !assignee.IsEmployee() {
+		return nil, NewInvalidInputError("tasks can only be assigned to employees")
+	}
+
+	// Assign the task
+	_, err = s.taskRepo.AssignTask(ctx, request.TaskID, request.AssigneeID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to assign task")
+	}
+
+	// Retrieve the updated task
+	updatedTask, err := s.taskRepo.GetTaskByID(ctx, request.TaskID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get updated task")
+	}
+
+	return &AssignTaskResponse{
+		Task: *updatedTask,
+	}, nil
+}
+
 // GetEmployeeTaskSummary returns a summary of task statistics for each employee
 func (s *taskService) GetEmployeeTaskSummary(ctx context.Context, request GetEmployeeTaskSummaryRequest) (*GetEmployeeTaskSummaryResponse, error) {
 	// Check authentication

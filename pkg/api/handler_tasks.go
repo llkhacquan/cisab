@@ -153,6 +153,52 @@ func (s *Server) GetEmployeeTaskSummaryHandler(r *http.Request) (interface{}, er
 	return response, nil
 }
 
+// AssignTaskHandler handles PATCH requests to assign a task to an employee
+// curl -X PATCH http://localhost:8080/api/v1/tasks/{id}/assign \
+// -H "Content-Type: application/json" \
+// -H "Authorization: Bearer your_jwt_token" \
+//
+//	-d '{
+//	  "assignee_id": 3
+//	}'
+func (s *Server) AssignTaskHandler(r *http.Request) (interface{}, error) {
+	// 1. Extract task ID from URL
+	vars := mux.Vars(r)
+	taskIDStr := vars["id"]
+	taskID, err := strconv.Atoi(taskIDStr)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid task ID")
+	}
+
+	// 2. Decode request body
+	var assignRequest struct {
+		AssigneeID int `json:"assignee_id"`
+	}
+	if err := ReadJSON(r, &assignRequest); err != nil {
+		return nil, errors.Wrap(err, "invalid request body")
+	}
+
+	// Validate assignee_id
+	if assignRequest.AssigneeID <= 0 {
+		return nil, errors.New("assignee_id is required and must be positive")
+	}
+
+	// 3. Create service request
+	serviceRequest := service.AssignTaskRequest{
+		TaskID:     models.TaskID(taskID),
+		AssigneeID: models.UserID(assignRequest.AssigneeID),
+	}
+
+	// 4. Call the business logic
+	response, err := s.taskService.AssignTask(r.Context(), serviceRequest)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to assign task")
+	}
+
+	// 5. Return the response
+	return response, nil
+}
+
 // GetTasksHandler handles GET requests to retrieve tasks with filtering and sorting
 // curl -X GET http://localhost:8080/api/v1/tasks \
 // -H "Authorization: Bearer your_jwt_token" \

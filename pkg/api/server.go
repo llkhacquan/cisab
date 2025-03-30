@@ -104,6 +104,11 @@ func (s *Server) setupRoutes() {
 			Handler: s.UpdateTaskStatusHandler,
 		},
 		{
+			Method:  http.MethodPatch,
+			Path:    "/tasks/{id}/assign",
+			Handler: s.AssignTaskHandler,
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/tasks/assigned",
 			Handler: s.GetAssignedTasksHandler,

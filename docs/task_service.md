@@ -7,9 +7,10 @@ curl examples.
 
 1. [Create Task](#create-task)
 2. [Update Task Status](#update-task-status)
-3. [Get Assigned Tasks](#get-assigned-tasks)
-4. [Get Tasks](#get-tasks)
-5. [Get Employee Task Summary](#get-employee-task-summary)
+3. [Assign Task](#assign-task)
+4. [Get Assigned Tasks](#get-assigned-tasks)
+5. [Get Tasks](#get-tasks)
+6. [Get Employee Task Summary](#get-employee-task-summary)
 
 ## Create Task
 
@@ -166,6 +167,79 @@ curl -X PATCH http://localhost:8080/api/v1/tasks/1/status \
 | 401         | Unauthorized                              | Missing or invalid JWT token                                 |
 | 404         | Not found                                 | The specified task does not exist                            |
 | 500         | Internal server error                     | An unexpected error occurred on the server                   |
+
+## Assign Task
+
+Assigns a task to an employee. This endpoint requires authentication and can only be used by employers.
+
+### Endpoint
+
+```
+PATCH /api/v1/tasks/{id}/assign
+```
+
+### URL Parameters
+
+| Parameter | Type    | Description                  |
+|-----------|---------|------------------------------|
+| id        | integer | The ID of the task to assign |
+
+### Request Body
+
+```json
+{
+  "assignee_id": "integer"
+}
+```
+
+#### Fields
+
+| Field       | Type    | Required | Description                             |
+|-------------|---------|----------|-----------------------------------------|
+| assignee_id | integer | Yes      | The ID of the employee to assign to     |
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "task": {
+      "id": 1,
+      "title": "Task Title",
+      "description": "Task Description",
+      "status": "pending",
+      "due_date": "2023-04-15T00:00:00Z",
+      "employer_id": 2,
+      "assignee_id": 3,
+      "created_at": "2023-04-01T12:00:00Z",
+      "updated_at": "2023-04-01T14:30:00Z"
+    }
+  }
+}
+```
+
+### Example
+
+```bash
+curl -X PATCH http://localhost:8080/api/v1/tasks/1/assign \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -d '{
+    "assignee_id": 3
+  }'
+```
+
+### Error Responses
+
+| Status Code | Error Message                       | Description                                               |
+|-------------|-------------------------------------|-----------------------------------------------------------|
+| 400         | Missing required fields             | assignee_id field is missing                              |
+| 400         | Invalid assignee                    | The assignee specified does not exist                     |
+| 400         | Tasks can only be assigned to employees | Attempting to assign to a non-employee user          |
+| 401         | Unauthorized                        | Missing or invalid JWT token                              |
+| 404         | Not found                           | The specified task does not exist                         |
+| 500         | Internal server error               | An unexpected error occurred on the server                |
 
 ## Get Assigned Tasks
 
